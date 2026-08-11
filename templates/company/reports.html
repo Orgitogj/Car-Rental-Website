@@ -1,0 +1,95 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{% trans "Reports" %}{% endblock %}
+{% block page_title %}{% trans "Reports" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Reports" %}</h1>
+    <p>{% trans "Export your data as a formatted Excel workbook. The filters below apply to whichever report you download." %}</p>
+  </div>
+</div>
+
+{% if is_read_only_view %}
+  <div class="alert alert--info mb-6">
+    {% icon "info" %}
+    <div>
+      <p class="alert__title">{% trans "Read-only access" %}</p>
+      <p class="alert__body small">
+        {% blocktrans with name=viewing_company.name %}You may export {{ name }}'s data as platform administrator. Every export is recorded in the activity log.{% endblocktrans %}
+      </p>
+    </div>
+  </div>
+{% endif %}
+
+{% comment %}
+One form, many destinations: each card's button carries its own formaction, so
+the shared filters apply to whichever report is downloaded — and it works
+without JavaScript.
+{% endcomment %}
+<form method="get">
+  <section class="card mb-6">
+    <div class="card__head">
+      <div>
+        <p class="card__title">{% trans "Filters" %}</p>
+        <p class="card__subtitle">{% trans "Leave blank to export everything." %}</p>
+      </div>
+    </div>
+    <div class="card__body">
+      <div class="field-grid">
+        <div class="field">
+          <label class="field__label" for="report-from">{% trans "From" %}</label>
+          <input class="field__input" type="date" id="report-from" name="from">
+        </div>
+        <div class="field">
+          <label class="field__label" for="report-to">{% trans "To" %}</label>
+          <input class="field__input" type="date" id="report-to" name="to">
+        </div>
+        <div class="field">
+          <label class="field__label" for="report-status">{% trans "Booking status" %}</label>
+          <select class="field__input field__input--select" id="report-status" name="status">
+            <option value="">{% trans "All statuses" %}</option>
+            <option value="pending">{% trans "Pending" %}</option>
+            <option value="confirmed">{% trans "Confirmed" %}</option>
+            <option value="cancelled">{% trans "Cancelled" %}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid grid--cards">
+    {% for report in reports %}
+      <div class="card card--interactive">
+        <div class="card__body stack">
+          <div class="row row--between">
+            <span class="feature__icon">{% icon report.icon %}</span>
+            <span class="badge badge--neutral">.xlsx</span>
+          </div>
+          <div>
+            <h3 class="card__title">{{ report.label }}</h3>
+            <p class="card__subtitle">{{ report.description }}</p>
+          </div>
+          <button type="submit" class="btn btn--primary btn--block mt-2"
+                  formaction="{% url 'company_report_export' report.key %}">
+            {% icon "download" %}{% trans "Export Excel" %}
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</form>
+
+<section class="card mt-6">
+  <div class="card__body">
+    <p class="card__title">{% trans "What you get" %}</p>
+    <ul class="stack-sm small muted mt-3" style="list-style:disc;padding-left:1.1rem">
+      <li>{% trans "Real .xlsx workbooks — styled headers, frozen panes, filters and totals rows." %}</li>
+      <li>{% trans "Currency and dates written as Excel values, so you can pivot and chart them straight away." %}</li>
+      <li>{% trans "The revenue report spans four sheets: summary, daily trend, per-vehicle and raw bookings." %}</li>
+      <li>{% trans "Exports only ever contain your own company's data." %}</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

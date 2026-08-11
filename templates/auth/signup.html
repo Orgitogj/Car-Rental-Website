@@ -1,0 +1,33 @@
+{% extends "base/auth.html" %}
+{% load i18n ui %}
+{% block title %}{% trans "Create account" %}{% endblock %}
+{% block heading %}{% trans "Create your account" %}{% endblock %}
+{% block subheading %}{% trans "Book faster and keep every reservation in one place." %}{% endblock %}
+
+{% block form %}
+<form method="post" class="auth-form" data-loading-form novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="form-error" role="alert">{% icon "alert" %}<span>{{ form.non_field_errors.0 }}</span></div>
+  {% endif %}
+
+  {% field form.full_name icon_name="user" %}
+  {% field form.email icon_name="mail" %}
+  {% field form.phone icon_name="phone" %}
+  {% field form.password1 icon_name="lock" toggle=True %}
+  {% field form.password2 icon_name="lock" toggle=True %}
+
+  <button type="submit" class="btn btn--primary btn--lg btn--block">
+    {% icon "user-plus" %}{% trans "Create account" %}
+  </button>
+</form>
+{% endblock %}
+
+{% block foot %}
+  <p>{% trans "Already have an account?" %} <a class="link link--strong" href="{% url 'login' %}">{% trans "Sign in" %}</a></p>
+  <p class="mt-2 tiny">
+    {% trans "Are you a rental company?" %}
+    <a class="link" href="{% url 'portal_register' %}">{% trans "Register your company" %}</a>
+  </p>
+{% endblock %}

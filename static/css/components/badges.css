@@ -1,0 +1,95 @@
+/* ==========================================================================
+   Badges, pills and status dots
+   ========================================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-size: var(--text-xs);
+  font-weight: 650;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.badge--success { background: var(--success-bg); color: var(--success-fg); border-color: var(--success-line); }
+.badge--warning { background: var(--warning-bg); color: var(--warning-fg); border-color: var(--warning-line); }
+.badge--danger  { background: var(--danger-bg);  color: var(--danger-fg);  border-color: var(--danger-line); }
+.badge--info    { background: var(--info-bg);    color: var(--info-fg);    border-color: var(--info-line); }
+.badge--neutral { background: var(--neutral-bg); color: var(--neutral-fg); border-color: var(--neutral-line); }
+.badge--brand   { background: var(--primary-soft); color: var(--primary); border-color: color-mix(in srgb, var(--primary) 25%, transparent); }
+
+.badge--solid { border-color: transparent; }
+.badge--solid.badge--success { background: var(--success-fg); color: #fff; }
+.badge--solid.badge--danger { background: var(--danger-fg); color: #fff; }
+.badge--solid.badge--brand { background: var(--primary); color: var(--primary-on); }
+
+.badge--lg { padding: 5px 12px; font-size: var(--text-sm); }
+
+.badge svg { width: 12px; height: 12px; }
+
+/* Status dot */
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.dot--pulse {
+  position: relative;
+}
+
+.dot--pulse::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation: dot-pulse 1.9s var(--ease-out) infinite;
+}
+
+@keyframes dot-pulse {
+  0% { transform: scale(0.7); opacity: 0.45; }
+  70% { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+/* Small count bubble, e.g. unread messages */
+.count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--danger-fg);
+  color: #fff;
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.count--muted { background: var(--neutral-bg); color: var(--neutral-fg); }
+.count--warning { background: var(--accent-500); color: var(--accent-on); }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--radius-full);
+  background: rgba(10, 17, 25, 0.72);
+  color: #fff;
+  font-size: var(--text-2xs);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(6px);
+}
+
+.tag--accent { background: var(--accent-500); color: var(--accent-on); }
+.tag--brand { background: var(--primary); color: var(--primary-on); }

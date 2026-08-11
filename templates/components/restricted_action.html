@@ -1,0 +1,13 @@
+{% load ui %}
+{% comment %}
+A mutating control the viewer may see but not use. Kept clickable on purpose —
+the click is caught in restricted.js and explained with a toast, while the
+server refuses the mutation independently.
+{% endcomment %}
+<button type="button"
+        class="{{ base }}{% if variant %} {{ variant }}{% endif %}{% if size %} {{ size }}{% endif %} restricted-action"
+        aria-disabled="true"
+        data-restricted="{{ reason }}"
+        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+  {% if icon_name %}{% icon icon_name %}{% endif %}{{ label }}
+</button>

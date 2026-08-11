@@ -1,0 +1,135 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Pricing & extras" %}{% endblock %}
+{% block page_title %}{% trans "Pricing & extras" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Pricing & extras" %}</h1>
+    <p>{% trans "Daily rates for your fleet, and the paid add-ons customers can choose at checkout." %}</p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 340px;gap:var(--space-6);align-items:start">
+  <div class="stack-lg">
+    <section class="card">
+      <div class="card__head">
+        <div>
+          <p class="card__title">{% trans "Add-ons" %}</p>
+          <p class="card__subtitle">{% trans "Priced per day and added to the customer's total before they confirm." %}</p>
+        </div>
+      </div>
+
+      <div class="card__body--flush">
+        {% for extra in extras %}
+          <div class="list-item">
+            <span class="avatar avatar--sm">{% icon "tag" %}</span>
+            <span class="list-item__body">
+              <span class="list-item__title">
+                {{ extra.name }}
+                {% if not extra.is_active %}<span class="badge badge--neutral">{% trans "Hidden" %}</span>{% endif %}
+              </span>
+              <span class="list-item__meta">{{ extra.description|default:"—" }}</span>
+            </span>
+            <span class="list-item__side">
+              <strong>{% money extra.price_per_day %}</strong> / {% trans "day" %}
+            </span>
+            {% if can_manage_company %}
+              <form method="post" action="{% url 'company_extra_delete' extra.id %}"
+                    data-confirm="{% blocktrans with name=extra.name %}Remove {{ name }}?{% endblocktrans %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn--ghost btn--icon btn--sm"
+                        aria-label="{% trans 'Remove' %}">{% icon "trash" %}</button>
+              </form>
+            {% else %}
+              {% restricted_action icon_name="trash" variant="btn--ghost btn--icon" size="btn--sm" aria_label=_("Remove") %}
+            {% endif %}
+          </div>
+        {% empty %}
+          {% empty_state title=_("No add-ons") text=_("Add-ons like GPS, a child seat or full insurance give customers a reason to spend more.") icon_name="tag" compact=True %}
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <div>
+          <p class="card__title">{% trans "Daily rates" %}</p>
+          <p class="card__subtitle">{% trans "Edit a vehicle to change its rate." %}</p>
+        </div>
+      </div>
+
+      <div class="table-wrap table-wrap--flush table-wrap--responsive">
+        <table class="table table--responsive table--compact">
+          <thead>
+            <tr>
+              <th>{% trans "Vehicle" %}</th>
+              <th>{% trans "Category" %}</th>
+              <th class="table__num">{% trans "Rate / day" %}</th>
+              <th>{% trans "Listed" %}</th>
+              <th class="table__actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for car in cars %}
+              <tr>
+                <td data-label="{% trans 'Vehicle' %}"><span class="table__primary">{{ car.title }}</span></td>
+                <td data-label="{% trans 'Category' %}">{{ car.get_car_type_display }}</td>
+                <td data-label="{% trans 'Rate / day' %}" class="table__num"><strong>{% money car.price_per_day %}</strong></td>
+                <td data-label="{% trans 'Listed' %}">
+                  <span class="badge badge--{% if car.is_active %}success{% else %}neutral{% endif %}">
+                    {% if car.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}
+                  </span>
+                </td>
+                <td data-label="" class="table__actions">
+                  {% if can_manage_company %}
+                    <a class="btn btn--ghost btn--sm" href="{% url 'company_car_edit' car.id %}">
+                      {% icon "edit" %}{% trans "Edit" %}
+                    </a>
+                  {% else %}
+                    {% restricted_action label=_("Edit") icon_name="edit" variant="btn--ghost" size="btn--sm" %}
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5">
+                {% empty_state title=_("No vehicles") text=_("Add a vehicle to set its daily rate.") icon_name="car" compact=True %}
+              </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <aside>
+    <form method="post" class="card" data-loading-form novalidate>
+      {% csrf_token %}
+      <div class="card__head"><p class="card__title">{% trans "New add-on" %}</p></div>
+      <div class="card__body stack">
+        {% if not can_manage_company %}
+          <p class="small muted">
+            {% trans "You are viewing this company as platform administrator. Pricing cannot be changed from here." %}
+          </p>
+        {% endif %}
+        <fieldset class="stack" {% if not can_manage_company %}disabled{% endif %}>
+          {% field form.name %}
+          {% field form.description %}
+          {% field form.price_per_day %}
+          {% field form.sort_order %}
+          {% field form.is_active %}
+        </fieldset>
+        {% if can_manage_company %}
+          <button type="submit" class="btn btn--primary btn--block">
+            {% icon "plus" %}{% trans "Add extra" %}
+          </button>
+        {% else %}
+          {% restricted_action label=_("Add extra") icon_name="plus" variant="btn--primary btn--block" %}
+        {% endif %}
+      </div>
+    </form>
+  </aside>
+</div>
+{% endblock %}

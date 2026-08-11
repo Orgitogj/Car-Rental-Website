@@ -1,0 +1,208 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Companies" %}{% endblock %}
+{% block page_title %}{% trans "Companies" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Companies" %}</h1>
+    <p>{% trans "Every rental company on the platform. Open one to inspect its dashboard read-only." %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'superadmin_report_export' 'companies' %}">
+      {% icon "download" %}{% trans "Export" %}
+    </a>
+    <a class="btn btn--primary" href="{% url 'superadmin_company_create' %}">
+      {% icon "plus" %}{% trans "Add company" %}
+    </a>
+  </div>
+</div>
+
+<div class="btn-group mb-4" role="group" aria-label="{% trans 'Filter by status' %}">
+  <a class="btn-group__item {% if not status %}is-active{% endif %}" href="?{% query_replace status='' page='' %}">
+    {% trans "All" %} <span class="muted">{{ counts.all }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'active' %}is-active{% endif %}" href="?{% query_replace status='active' page='' %}">
+    {% trans "Active" %} <span class="muted">{{ counts.active }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'pending' %}is-active{% endif %}" href="?{% query_replace status='pending' page='' %}">
+    {% trans "Pending" %} <span class="muted">{{ counts.pending }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'suspended' %}is-active{% endif %}" href="?{% query_replace status='suspended' page='' %}">
+    {% trans "Suspended" %} <span class="muted">{{ counts.suspended }}</span>
+  </a>
+</div>
+
+<form class="toolbar" method="get">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <div class="toolbar__search">
+    {% icon "search" %}
+    <input class="field__input" type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Company, email, city or owner…' %}"
+           aria-label="{% trans 'Search companies' %}">
+  </div>
+  <div class="toolbar__filters">
+    <input class="field__input" type="date" name="from" value="{{ created_from }}" aria-label="{% trans 'Joined from' %}">
+    <input class="field__input" type="date" name="to" value="{{ created_to }}" aria-label="{% trans 'Joined to' %}">
+    <select class="field__input field__input--select" name="sort" aria-label="{% trans 'Sort' %}">
+      <option value="-created" {% if sort == "-created" %}selected{% endif %}>{% trans "Newest first" %}</option>
+      <option value="created" {% if sort == "created" %}selected{% endif %}>{% trans "Oldest first" %}</option>
+      <option value="name" {% if sort == "name" %}selected{% endif %}>{% trans "Name A–Z" %}</option>
+      <option value="-revenue" {% if sort == "-revenue" %}selected{% endif %}>{% trans "Highest revenue" %}</option>
+      <option value="-bookings" {% if sort == "-bookings" %}selected{% endif %}>{% trans "Most bookings" %}</option>
+      <option value="-fleet" {% if sort == "-fleet" %}selected{% endif %}>{% trans "Largest fleet" %}</option>
+    </select>
+    <button type="submit" class="btn btn--sm">{% icon "filter" %}{% trans "Apply" %}</button>
+    {% if query or created_from or created_to %}
+      <a class="btn btn--ghost btn--sm" href="{% url 'superadmin_companies' %}">{% trans "Clear" %}</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if companies %}
+  <div class="table-wrap table-wrap--responsive">
+    <table class="table table--responsive">
+      <thead>
+        <tr>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Owner" %}</th>
+          <th>{% trans "Location" %}</th>
+          <th class="table__num">{% trans "Fleet" %}</th>
+          <th class="table__num">{% trans "Bookings" %}</th>
+          <th class="table__num">{% trans "Revenue" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Contract" %}</th>
+          <th>{% trans "Last activity" %}</th>
+          <th class="table__actions">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for company in companies %}
+          <tr>
+            <td data-label="{% trans 'Company' %}">
+              <span class="table__with-avatar">
+                <span class="avatar">
+                  {% if company.logo_url %}
+                    <img src="{{ company.logo_url }}" alt="" loading="lazy" width="40" height="40">
+                  {% else %}{{ company.initials }}{% endif %}
+                </span>
+                <span class="table__cell-stack">
+                  <span class="table__primary">{{ company.name }}</span>
+                  <span class="table__secondary">{{ company.email }}</span>
+                </span>
+              </span>
+            </td>
+
+            <td data-label="{% trans 'Owner' %}">
+              <span class="table__cell-stack">
+                <span>{{ company.owner.get_full_name|default:company.owner.username }}</span>
+                <span class="table__secondary">
+                  {% if company.owner.is_active %}{% trans "Active" %}{% else %}{% trans "Deactivated" %}{% endif %}
+                </span>
+              </span>
+            </td>
+
+            <td data-label="{% trans 'Location' %}">{{ company.city|default:"—" }}</td>
+            <td data-label="{% trans 'Fleet' %}" class="table__num">{{ company.fleet_count }}</td>
+            <td data-label="{% trans 'Bookings' %}" class="table__num">{{ company.booking_count }}</td>
+            <td data-label="{% trans 'Revenue' %}" class="table__num"><strong>{% money company.revenue %}</strong></td>
+
+            <td data-label="{% trans 'Status' %}">
+              <span class="badge badge--{{ company.status|status_tone }}">{{ company.get_status_display }}</span>
+            </td>
+
+            <td data-label="{% trans 'Contract' %}">
+              {% with contract=company.current_contract %}
+                {% if contract %}
+                  <a class="table__cell-stack" href="{% url 'superadmin_company_contract' company.id %}">
+                    <span class="badge badge--{{ contract.tone }}">
+                      {% if contract.is_signed %}{% icon "check-circle" %}{% else %}{% icon "alert" %}{% endif %}
+                      {{ contract.get_status_display }}
+                    </span>
+                    <span class="table__secondary">
+                      v{{ contract.version }}{% if contract.signed_at %} · {{ contract.signed_at|date:"M j, Y" }}{% endif %}
+                    </span>
+                  </a>
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+
+            <td data-label="{% trans 'Last activity' %}">
+              <span class="table__cell-stack">
+                <span>{% if company.last_booking_at %}{{ company.last_booking_at|timesince }}{% else %}—{% endif %}</span>
+                <span class="table__secondary">{% trans "Joined" %} {{ company.created_at|date:"M Y" }}</span>
+              </span>
+            </td>
+
+            {# The action this whole page exists for. #}
+            <td data-label="" class="table__actions">
+              <div class="row row--tight">
+                <a class="btn btn--primary btn--sm" href="{% url 'superadmin_company_enter' company.id %}">
+                  {% icon "eye" %}{% trans "View dashboard" %}
+                </a>
+
+                <div class="dropdown">
+                  <button type="button" class="btn btn--ghost btn--icon btn--sm"
+                          data-dropdown="company-menu-{{ company.id }}"
+                          aria-label="{% trans 'More actions' %}">
+                    {% icon "chevron-down" %}
+                  </button>
+
+                  <div class="dropdown__menu" id="company-menu-{{ company.id }}" hidden>
+                    <a class="dropdown__item" href="{% url 'superadmin_company_edit' company.id %}">
+                      {% icon "building" %}{% trans "Company details" %}
+                    </a>
+                    <a class="dropdown__item" href="{% url 'superadmin_company_contract' company.id %}">
+                      {% icon "file-text" %}{% trans "Contract" %}
+                    </a>
+                    <a class="dropdown__item" href="{% url 'cars' %}?company={{ company.id }}" target="_blank" rel="noopener">
+                      {% icon "car" %}{% trans "View public fleet" %}
+                    </a>
+
+                    <div class="dropdown__sep"></div>
+                    <p class="dropdown__label">{% trans "Status" %}</p>
+
+                    {% for value, label in statuses %}
+                      {% if company.status != value %}
+                        <form method="post" action="{% url 'superadmin_company_status' company.id %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="status" value="{{ value }}">
+                          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                          <button type="submit" class="dropdown__item">
+                            {% icon "shield" %}{% blocktrans %}Mark {{ label }}{% endblocktrans %}
+                          </button>
+                        </form>
+                      {% endif %}
+                    {% endfor %}
+
+                    <div class="dropdown__sep"></div>
+                    <a class="dropdown__item dropdown__item--danger" href="{% url 'superadmin_company_delete' company.id %}">
+                      {% icon "trash" %}{% trans "Delete company" %}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% if query or status or created_from %}
+      {% url 'superadmin_companies' as clear_url %}
+      {% empty_state title=_("No companies match those filters") text=_("Try a different status, a wider date range, or clear the search.") icon_name="search" action_url=clear_url action_label=_("Clear filters") %}
+    {% else %}
+      {% url 'superadmin_company_create' as add_url %}
+      {% empty_state title=_("No companies yet") text=_("Register your first rental company and it can start listing vehicles immediately.") icon_name="building" action_url=add_url action_label=_("Add the first company") %}
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

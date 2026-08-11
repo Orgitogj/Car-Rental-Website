@@ -1,0 +1,73 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Delete company" %}{% endblock %}
+{% block page_title %}{% trans "Companies" %}{% endblock %}
+
+{% block content %}
+<div class="container container--narrow" style="margin-inline:0">
+  <div class="page-head">
+    <div class="page-head__text">
+      <nav class="row row--tight small muted mb-2">
+        <a class="link" href="{% url 'superadmin_companies' %}">{% trans "Companies" %}</a>
+        {% icon "chevron-right" %}
+        <span>{{ company.name }}</span>
+      </nav>
+      <h1>{% trans "Delete this company?" %}</h1>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__body stack">
+      <div class="alert alert--danger">
+        {% icon "alert" %}
+        <div>
+          <p class="alert__title">{% trans "This cannot be undone" %}</p>
+          <p class="alert__body small">
+            {% trans "Everything belonging to this company is removed permanently, along with the owner's login." %}
+          </p>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="avatar avatar--lg">
+          {% if company.logo_url %}
+            <img src="{{ company.logo_url }}" alt="" width="56" height="56">
+          {% else %}{{ company.initials }}{% endif %}
+        </span>
+        <span>
+          <strong>{{ company.name }}</strong><br>
+          <span class="small muted">{{ company.email }}</span>
+        </span>
+      </div>
+
+      <div class="summary">
+        <div class="summary__row"><span>{% trans "Vehicles removed" %}</span><b>{{ fleet_count }}</b></div>
+        <div class="summary__row"><span>{% trans "Bookings removed" %}</span><b>{{ booking_count }}</b></div>
+        <div class="summary__row"><span>{% trans "Owner login removed" %}</span><b>{{ company.owner.username }}</b></div>
+      </div>
+
+      <p class="small muted">
+        {% trans "If you only want to take this company offline, suspend it instead — its data is kept and it disappears from public search." %}
+      </p>
+
+      <div class="row row--wrap">
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--danger btn--lg">
+            {% icon "trash" %}{% trans "Delete permanently" %}
+          </button>
+        </form>
+
+        <form method="post" action="{% url 'superadmin_company_status' company.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="suspended">
+          <button type="submit" class="btn btn--lg">{% icon "lock" %}{% trans "Suspend instead" %}</button>
+        </form>
+
+        <a class="btn btn--ghost btn--lg" href="{% url 'superadmin_companies' %}">{% trans "Cancel" %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

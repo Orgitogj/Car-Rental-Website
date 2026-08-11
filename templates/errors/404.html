@@ -1,0 +1,9 @@
+{% extends "errors/_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Page not found" %}{% endblock %}
+{% block code %}404{% endblock %}
+{% block heading %}{% trans "We couldn't find that page" %}{% endblock %}
+{% block message %}
+  {% trans "The link may be out of date, or the vehicle you were looking at is no longer listed." %}
+{% endblock %}

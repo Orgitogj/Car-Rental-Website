@@ -1,0 +1,9 @@
+{% extends "errors/_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Bad request" %}{% endblock %}
+{% block code %}400{% endblock %}
+{% block heading %}{% trans "That request didn't look right" %}{% endblock %}
+{% block message %}
+  {% trans "Something in the request was malformed or expired. Reloading the page usually fixes it." %}
+{% endblock %}

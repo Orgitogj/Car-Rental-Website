@@ -1,0 +1,91 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Reports" %}{% endblock %}
+{% block page_title %}{% trans "Reports" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Reports" %}</h1>
+    <p>{% trans "Platform-wide Excel exports. Narrow to a single company if you need to." %}</p>
+  </div>
+</div>
+
+{% comment %}
+One form, many destinations: each card's button carries its own formaction, so
+the shared filters apply to whichever report is downloaded.
+{% endcomment %}
+<form method="get">
+  <section class="card mb-6">
+    <div class="card__head">
+      <div>
+        <p class="card__title">{% trans "Filters" %}</p>
+        <p class="card__subtitle">{% trans "Leave blank to export the whole platform." %}</p>
+      </div>
+    </div>
+    <div class="card__body">
+      <div class="field-grid">
+        <div class="field">
+          <label class="field__label" for="rp-company">{% trans "Company" %}</label>
+          <select class="field__input field__input--select" id="rp-company" name="company">
+            <option value="">{% trans "All companies" %}</option>
+            {% for c in companies %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="rp-from">{% trans "From" %}</label>
+          <input class="field__input" type="date" id="rp-from" name="from">
+        </div>
+        <div class="field">
+          <label class="field__label" for="rp-to">{% trans "To" %}</label>
+          <input class="field__input" type="date" id="rp-to" name="to">
+        </div>
+        <div class="field">
+          <label class="field__label" for="rp-status">{% trans "Status" %}</label>
+          <select class="field__input field__input--select" id="rp-status" name="status">
+            <option value="">{% trans "All" %}</option>
+            <option value="pending">{% trans "Pending" %}</option>
+            <option value="confirmed">{% trans "Confirmed" %}</option>
+            <option value="cancelled">{% trans "Cancelled" %}</option>
+            <option value="active">{% trans "Active (companies)" %}</option>
+            <option value="suspended">{% trans "Suspended (companies)" %}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid grid--cards">
+    {% for report in reports %}
+      <div class="card card--interactive">
+        <div class="card__body stack">
+          <div class="row row--between">
+            <span class="feature__icon">{% icon report.icon %}</span>
+            <span class="badge badge--neutral">.xlsx</span>
+          </div>
+          <div>
+            <h3 class="card__title">{{ report.label }}</h3>
+            <p class="card__subtitle">{{ report.description }}</p>
+          </div>
+          <button type="submit" class="btn btn--primary btn--block mt-2"
+                  formaction="{% url 'superadmin_report_export' report.key %}">
+            {% icon "download" %}{% trans "Export Excel" %}
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</form>
+
+<section class="card mt-6">
+  <div class="card__body">
+    <p class="card__title">{% trans "Notes" %}</p>
+    <ul class="stack-sm small muted mt-3" style="list-style:disc;padding-left:1.1rem">
+      <li>{% trans "Company and user reports ignore the company filter — they are platform-wide by definition." %}</li>
+      <li>{% trans "The revenue workbook contains summary, daily, per-vehicle and raw booking sheets." %}</li>
+      <li>{% trans "Every export is written to the activity log with the filters that were used." %}</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

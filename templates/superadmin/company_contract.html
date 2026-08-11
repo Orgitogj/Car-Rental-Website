@@ -1,0 +1,169 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Company contract" %}{% endblock %}
+{% block page_title %}{{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Contract" %}</h1>
+    <p>{{ company.name }} · {{ company.email }}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'superadmin_company_edit' company.id %}">
+      {% icon "building" %}{% trans "Company details" %}
+    </a>
+    <a class="btn" href="{% url 'superadmin_company_enter' company.id %}">
+      {% icon "eye" %}{% trans "View dashboard" %}
+    </a>
+  </div>
+</div>
+
+{% if not contract %}
+  <div class="card">
+    {% empty_state title=_("No contract issued yet") text=_("A contract is issued automatically the first time this company opens its panel.") icon_name="file-text" %}
+  </div>
+{% else %}
+
+{% if contract.is_signed %}
+  <div class="alert alert--success contract-banner" role="status">
+    {% icon "check-circle" %}
+    <div class="alert__body">
+      <p class="alert__title">{% trans "Signed" %}</p>
+      <p>{% blocktrans with name=contract.signer_name date=contract.signed_at|date:"F j, Y" %}Signed by {{ name }} on {{ date }}.{% endblocktrans %}</p>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert--warning contract-banner" role="status">
+    {% icon "alert" %}
+    <div class="alert__body">
+      <p class="alert__title">{% trans "Pending Signature" %}</p>
+      <p>{% trans "This company cannot use its panel until it signs. Only the company itself can sign — the platform cannot sign on its behalf." %}</p>
+    </div>
+  </div>
+{% endif %}
+
+<div class="contract-meta">
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Contract ID" %}</p>
+    <p class="contract-meta__value mono">{{ contract.reference }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Version" %}</p>
+    <p class="contract-meta__value">v{{ contract.version }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Created" %}</p>
+    <p class="contract-meta__value">{{ contract.created_at|date:"F j, Y" }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Signed" %}</p>
+    <p class="contract-meta__value">{{ contract.signed_at|date:"F j, Y"|default:"—" }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Signer" %}</p>
+    <p class="contract-meta__value">{{ contract.signer_name|default:"—" }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Status" %}</p>
+    <p class="contract-meta__value">
+      <span class="badge badge--{{ contract.tone }}">{{ contract.get_status_display }}</span>
+    </p>
+  </div>
+</div>
+
+<div class="contract-layout">
+  <div class="contract-layout__main">
+    <section class="card contract-document">
+      <div class="contract-document__head">
+        <h2 class="card__title">{{ contract.title }}</h2>
+        <p class="tiny muted">{% trans "The exact text this company was issued." %}</p>
+      </div>
+      <div class="contract-document__scroll" tabindex="0">
+        {% for section in sections %}
+          {% if section.heading %}<h3 class="contract-document__heading">{{ section.heading }}</h3>{% endif %}
+          {% for paragraph in section.paragraphs %}
+            <p class="contract-document__paragraph">{{ paragraph }}</p>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      <p class="contract-document__fingerprint">
+        {% trans "Document fingerprint (SHA-256)" %}: <span class="mono">{{ contract.content_hash }}</span>
+        {% if not contract.content_matches_hash %}
+          <span class="badge badge--danger">{% trans "Fingerprint mismatch" %}</span>
+        {% endif %}
+      </p>
+    </section>
+
+    {% if contract.is_signed %}
+      <section class="card contract-signature contract-signature--done">
+        <h2 class="card__title">{% icon "signature" %}{% trans "Signature record" %}</h2>
+        <div class="contract-record">
+          <div><span>{% trans "Signer" %}</span><strong>{{ contract.signer_name }}</strong></div>
+          <div><span>{% trans "Email" %}</span><strong>{{ contract.signer_email }}</strong></div>
+          <div><span>{% trans "User ID" %}</span><strong class="mono">{{ contract.signed_by_id|default:"—" }}</strong></div>
+          <div><span>{% trans "Signature" %}</span><strong class="signature-mark">{{ contract.signature_name }}</strong></div>
+          <div><span>{% trans "Signed at" %}</span><strong>{{ contract.signed_at|date:"F j, Y H:i" }}</strong></div>
+          <div><span>{% trans "IP address" %}</span><strong class="mono">{{ contract.signature_ip|default:"—" }}</strong></div>
+          <div class="contract-record--wide"><span>{% trans "User agent" %}</span><strong>{{ contract.signature_user_agent|default:"—" }}</strong></div>
+          <div class="contract-record--wide"><span>{% trans "Signature fingerprint" %}</span><strong class="mono">{{ contract.signature_hash }}</strong></div>
+        </div>
+      </section>
+    {% endif %}
+  </div>
+
+  <aside class="contract-layout__side">
+    <section class="card">
+      <h2 class="card__title">{% trans "Contract history" %}</h2>
+      <ul class="contract-history">
+        {% for item in history %}
+          <li>
+            <a href="{% url 'superadmin_company_contract' company.id %}?contract={{ item.id }}">
+              <span class="contract-history__version">v{{ item.version }}</span>
+              <span class="badge badge--{{ item.tone }}">{{ item.get_status_display }}</span>
+              <span class="contract-history__date">
+                {% if item.signed_at %}{{ item.signed_at|date:"M j, Y" }}{% else %}{{ item.created_at|date:"M j, Y" }}{% endif %}
+              </span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="tiny muted mt-3">
+        {% trans "Signed versions are immutable. To change terms, publish a new version — the company is then asked to sign it." %}
+      </p>
+      <a class="btn btn--sm mt-3" href="{% url 'superadmin_contract_template_create' %}">
+        {% icon "plus" %}{% trans "Publish new version" %}
+      </a>
+    </section>
+
+    <section class="card">
+      <h2 class="card__title">{% trans "Registration details" %}</h2>
+      <div class="contract-status-card__meta">
+        <p>{% trans "Legal name" %}: <strong>{{ company.legal_name|default:"—" }}</strong></p>
+        <p>{% trans "City" %}: <strong>{{ company.city|default:"—" }}</strong></p>
+        <p>{% trans "State" %}: <strong>{{ company.state|default:"—" }}</strong></p>
+        <p>{% trans "TIN" %}: <strong>{{ company.tin|default:"—" }}</strong></p>
+        <p>{% trans "Tax number" %}: <strong>{{ company.tax_number|default:"—" }}</strong></p>
+        <p>{% trans "Owner" %}: <strong>{{ company.owner.get_full_name|default:company.owner.username }}</strong></p>
+      </div>
+
+      {% if documents %}
+        <p class="card__title mt-4">{% trans "Business documents" %}</p>
+        <ul class="contract-history mt-2">
+          {% for document in documents %}
+            <li>
+              <a href="{{ document.url }}" target="_blank" rel="noopener">
+                {% icon "file-text" %}
+                <span>{{ document.name|truncatechars:28 }}</span>
+                <span class="contract-history__date">{{ document.size_kb }} KB</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

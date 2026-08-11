@@ -1,0 +1,60 @@
+{% load static i18n ui %}
+{% get_current_language as LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE }}">
+<head>
+  {% include "base/_head.html" %}
+  <title>{% block title %}{% trans "Sign in" %}{% endblock %} · Vantage Rentals</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="{% static 'css/layouts/auth.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body class="auth-page">
+  {% include "components/icons.html" %}
+  {% include "components/flags.html" %}
+
+  <div class="auth-shell">
+    <div class="auth-shell__top">
+      {% include "components/language_menu.html" %}
+      <button type="button" class="btn btn--ghost btn--icon" data-theme-toggle
+              aria-pressed="false" aria-label="{% trans 'Toggle dark mode' %}">
+        {% icon "moon" %}
+      </button>
+    </div>
+
+    <main class="auth-shell__body">
+      <a class="auth-brand" href="{% url 'home' %}">
+        <span class="auth-brand__mark">{% icon "car" %}</span>
+        <span class="auth-brand__text">
+          <span class="auth-brand__name">Vantage<span>Rentals</span></span>
+          <span class="auth-brand__tagline">{% trans "RENT. DRIVE. EXPLORE." %}</span>
+        </span>
+      </a>
+
+      <section class="auth-card{% block card_class %}{% endblock %}">
+        <header class="auth-card__head">
+          <h1 class="auth-card__title">{% block heading %}{% endblock %}</h1>
+          <p class="auth-card__subtitle">{% block subheading %}{% endblock %}</p>
+        </header>
+
+        {% block card_body %}
+          {% block form %}{% endblock %}
+          <div class="auth-card__foot">{% block foot %}{% endblock %}</div>
+        {% endblock %}
+      </section>
+
+      {% now "Y" as year %}
+      <p class="auth-shell__legal">
+        {% blocktrans %}Copyright © {{ year }} Vantage Rentals. All rights reserved.{% endblocktrans %}
+      </p>
+    </main>
+  </div>
+
+  {% include "components/flash.html" %}
+  <div class="toast-region" role="status" aria-live="polite"></div>
+
+  <script type="module" src="{% static 'js/core/app.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

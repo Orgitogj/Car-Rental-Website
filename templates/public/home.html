@@ -1,0 +1,262 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "Rent a car in minutes" %} · Vantage Rentals{% endblock %}
+{% block navbar_class %} navbar--over-hero{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/home.css' %}">{% endblock %}
+{% block content %}
+
+{# ===================== HERO + SEARCH ===================== #}
+<section class="hero">
+  <div class="hero__bg" aria-hidden="true"></div>
+  <div class="hero__grid" aria-hidden="true"></div>
+
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <p class="hero__eyebrow">
+        <span class="badge badge--solid">{% trans "New" %}</span>
+        {% trans "Instant confirmation on every booking" %}
+      </p>
+
+      <h1>{% trans "Your next drive," %} <em>{% trans "booked in 60 seconds" %}</em></h1>
+
+      <p class="hero__lead">
+        {% blocktrans %}Compare vehicles from trusted local rental companies, see the real total before you commit, and get on the road the same day.{% endblocktrans %}
+      </p>
+
+      <div class="hero__trust">
+        <span class="hero__trust-item">{% icon "shield" %}{% trans "Verified rental partners" %}</span>
+        <span class="hero__trust-item">{% icon "tag" %}{% trans "No hidden fees" %}</span>
+        <span class="hero__trust-item">{% icon "clock" %}{% trans "Free cancellation before pickup" %}</span>
+      </div>
+    </div>
+
+    {# Plain GET form: works with JavaScript disabled. #}
+    <div class="search-widget">
+      <form class="search-widget__form" method="get" action="{% url 'cars' %}"
+            data-date-range data-min-days="{{ MIN_RENTAL_DAYS }}">
+        <div class="search-widget__field">
+          <label class="search-widget__label" for="hero-company">{% trans "Rental company" %}</label>
+          <select class="search-widget__input field__input--select" name="company" id="hero-company">
+            <option value="">{% trans "Any company" %}</option>
+            {% for company in facets.companies %}
+              <option value="{{ company.id }}">{{ company.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="search-widget__field">
+          <label class="search-widget__label" for="hero-start">{% trans "Pick-up" %}</label>
+          <input class="search-widget__input" type="date" name="start" id="hero-start"
+                 min="{{ today }}" data-date-start>
+        </div>
+
+        <div class="search-widget__field">
+          <label class="search-widget__label" for="hero-end">{% trans "Return" %}</label>
+          <input class="search-widget__input" type="date" name="end" id="hero-end"
+                 min="{{ today }}" data-date-end>
+        </div>
+
+        <div class="search-widget__field">
+          <label class="search-widget__label" for="hero-type">{% trans "Vehicle type" %}</label>
+          <select class="search-widget__input field__input--select" name="type" id="hero-type">
+            <option value="">{% trans "All types" %}</option>
+            {% for value, label in facets.types %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--lg search-widget__submit">
+          {% icon "search" %}
+          <span>{% trans "Search" %}</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{# ===================== TRUST STRIP ===================== #}
+{% if companies %}
+<section class="section--tight" style="border-bottom:1px solid var(--border)">
+  <div class="container">
+    <p class="text-center small muted" style="margin-bottom:var(--space-2)">
+      {% trans "Fleets from" %}
+    </p>
+    <div class="logo-strip">
+      {% for company in companies %}
+        <a class="logo-strip__item" href="{% url 'cars' %}?company={{ company.id }}">
+          <span class="avatar avatar--sm">
+            {% if company.logo_url %}
+              <img src="{{ company.logo_url }}" alt="" loading="lazy" width="30" height="30">
+            {% else %}{{ company.initials }}{% endif %}
+          </span>
+          {{ company.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ===================== CATEGORIES ===================== #}
+<section class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="section-head__text">
+        <p class="eyebrow">{% trans "Browse" %}</p>
+        <h2>{% trans "Find the right shape for the trip" %}</h2>
+        <p>{% trans "From city runabouts to weekend SUVs — every category, priced per day." %}</p>
+      </div>
+      <a class="btn" href="{% url 'cars' %}">{% trans "All vehicles" %} {% icon "arrow-right" %}</a>
+    </div>
+
+    <div class="categories" data-reveal>
+      {% for value, label in facets.types %}
+        <a class="category" href="{% url 'cars' %}?type={{ value }}">
+          <span class="category__icon">{% icon "car" %}</span>
+          <span class="category__name">{{ label }}</span>
+          <span class="category__count">{% trans "View vehicles" %}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ===================== FEATURED FLEET ===================== #}
+<section class="section section--sunken popular-cars">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="section-head__text">
+        <p class="eyebrow">{% trans "Most booked" %}</p>
+        <h2>{% trans "Popular right now" %}</h2>
+        <p>{% trans "The vehicles our customers keep coming back to." %}</p>
+      </div>
+      <a class="btn" href="{% url 'cars' %}?sort=recommended">{% trans "See all" %} {% icon "arrow-right" %}</a>
+    </div>
+
+    {% if featured_cars %}
+      <div class="results__grid">
+        {% for car in featured_cars %}
+          {% include "components/car_card.html" with car=car %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {% empty_state title=_("No vehicles listed yet") text=_("Rental companies are still adding their fleets. Check back shortly.") icon_name="car" %}
+    {% endif %}
+  </div>
+</section>
+
+{# ===================== STATS + BENEFITS ===================== #}
+<section class="section section--sunken">
+  <div class="container stack-xl">
+    <div class="stat-strip" data-reveal>
+      <div class="stat-strip__item">
+        <p class="stat-strip__value" data-count="{{ stats.vehicles }}">0</p>
+        <p class="stat-strip__label">{% trans "Vehicles available" %}</p>
+      </div>
+      <div class="stat-strip__item">
+        <p class="stat-strip__value" data-count="{{ stats.companies }}">0</p>
+        <p class="stat-strip__label">{% trans "Rental partners" %}</p>
+      </div>
+      <div class="stat-strip__item">
+        <p class="stat-strip__value" data-count="{{ stats.bookings }}">0</p>
+        <p class="stat-strip__label">{% trans "Trips booked" %}</p>
+      </div>
+      <div class="stat-strip__item">
+        <p class="stat-strip__value">24/7</p>
+        <p class="stat-strip__label">{% trans "Booking desk" %}</p>
+      </div>
+    </div>
+
+    <div class="grid grid--cards" data-reveal>
+      <div class="feature">
+        <span class="feature__icon">{% icon "tag" %}</span>
+        <h3>{% trans "The price you see is the price you pay" %}</h3>
+        <p>{% trans "Every extra is priced per day and added to the total before you confirm. Nothing appears at the desk." %}</p>
+      </div>
+      <div class="feature">
+        <span class="feature__icon">{% icon "shield" %}</span>
+        <h3>{% trans "Vetted rental companies" %}</h3>
+        <p>{% trans "Each partner is verified and monitored. Suspended companies disappear from search immediately." %}</p>
+      </div>
+      <div class="feature">
+        <span class="feature__icon">{% icon "bolt" %}</span>
+        <h3>{% trans "Availability you can trust" %}</h3>
+        <p>{% trans "Availability is checked against live bookings the moment you pick your dates, and again when you confirm." %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ===================== REVIEWS ===================== #}
+<section class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="section-head__text">
+        <p class="eyebrow">{% trans "Reviews" %}</p>
+        <h2>{% trans "What drivers say" %}</h2>
+      </div>
+    </div>
+
+    <div class="grid grid--cards" data-reveal>
+      <article class="quote-card">
+        <div class="quote-card__stars" aria-label="{% trans '5 out of 5' %}">
+          {% for _ in "12345" %}{% icon "star" %}{% endfor %}
+        </div>
+        <p class="quote-card__text">
+          {% trans "Booked an SUV on a Friday evening and collected it the next morning. The price on screen was exactly what I paid." %}
+        </p>
+        <div class="quote-card__author">
+          <span class="avatar avatar--round">AK</span>
+          <span><strong class="small">Arben K.</strong><br><span class="tiny muted">{% trans "Tirana" %}</span></span>
+        </div>
+      </article>
+
+      <article class="quote-card">
+        <div class="quote-card__stars" aria-label="{% trans '5 out of 5' %}">
+          {% for _ in "12345" %}{% icon "star" %}{% endfor %}
+        </div>
+        <p class="quote-card__text">
+          {% trans "Filtering by automatic and seven seats took ten seconds. Every car shown was actually free for my dates." %}
+        </p>
+        <div class="quote-card__author">
+          <span class="avatar avatar--round">ML</span>
+          <span><strong class="small">Maria L.</strong><br><span class="tiny muted">{% trans "Durrës" %}</span></span>
+        </div>
+      </article>
+
+      <article class="quote-card">
+        <div class="quote-card__stars" aria-label="{% trans '5 out of 5' %}">
+          {% for _ in "12345" %}{% icon "star" %}{% endfor %}
+        </div>
+        <p class="quote-card__text">
+          {% trans "Added a child seat and winter tyres and saw the new total straight away. No surprises when I collected the car." %}
+        </p>
+        <div class="quote-card__author">
+          <span class="avatar avatar--round">DS</span>
+          <span><strong class="small">Dritan S.</strong><br><span class="tiny muted">{% trans "Vlorë" %}</span></span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+{# ===================== CTA ===================== #}
+<section class="section--tight">
+  <div class="container">
+    <div class="cta" data-reveal>
+      <h2>{% trans "Ready when you are" %}</h2>
+      <p>{% trans "Search live availability across every partner fleet and confirm your vehicle in under a minute." %}</p>
+      <div class="cta__actions">
+        <a class="btn btn--accent btn--lg" href="{% url 'cars' %}">
+          {% icon "search" %}{% trans "Find a vehicle" %}
+        </a>
+        <a class="btn btn--glass btn--lg" href="{% url 'portal_login' %}">
+          {% icon "building" %}{% trans "List your fleet" %}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

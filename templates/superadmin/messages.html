@@ -1,0 +1,57 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Messages" %}{% endblock %}
+{% block page_title %}{% trans "Messages" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Messages" %}</h1>
+    <p>{% trans "Enquiries submitted through the public contact form." %}</p>
+  </div>
+</div>
+
+<div class="btn-group mb-4" role="group">
+  <a class="btn-group__item {% if not state %}is-active{% endif %}" href="?">{% trans "All" %}</a>
+  <a class="btn-group__item {% if state == 'unread' %}is-active{% endif %}" href="?state=unread">
+    {% trans "Unread" %} {% if unread_count %}<span class="count">{{ unread_count }}</span>{% endif %}
+  </a>
+  <a class="btn-group__item {% if state == 'replied' %}is-active{% endif %}" href="?state=replied">{% trans "Replied" %}</a>
+</div>
+
+{% if message_list %}
+  <div class="card">
+    <div class="card__body--flush">
+      {% for item in message_list %}
+        <a class="list-item" href="{% url 'superadmin_message_detail' item.id %}">
+          <span class="avatar avatar--round">{{ item.full_name|slice:":1"|upper }}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">
+              {% if not item.is_read %}<span class="dot" style="color:var(--primary)"></span>{% endif %}
+              {{ item.subject }}
+            </span>
+            <span class="list-item__meta">
+              {{ item.full_name }} · {{ item.email }} — {{ item.message|truncatechars:90 }}
+            </span>
+          </span>
+          <span class="list-item__side">
+            {% if item.is_replied %}
+              <span class="badge badge--success">{% trans "Replied" %}</span>
+            {% elif not item.is_read %}
+              <span class="badge badge--brand">{% trans "New" %}</span>
+            {% endif %}
+            <br>{{ item.created_at|date:"j M" }}
+          </span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% empty_state title=_("No messages") text=_("Enquiries from the public contact form arrive here.") icon_name="mail" %}
+  </div>
+{% endif %}
+{% endblock %}

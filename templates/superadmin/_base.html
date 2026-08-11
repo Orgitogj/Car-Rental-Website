@@ -1,0 +1,96 @@
+{% extends "base/dashboard.html" %}
+{% load i18n ui %}
+
+{% block nav_label %}{% trans "Platform navigation" %}{% endblock %}
+
+{% block sidebar_brand %}
+  <span class="sidebar__mark" style="background:linear-gradient(135deg,var(--accent-500),var(--accent-700))">
+    {% icon "shield" %}
+  </span>
+  <span class="sidebar__identity">
+    <span class="sidebar__name">Vantage</span>
+    <span class="sidebar__role">{% trans "Platform" %}</span>
+  </span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <button type="button" class="topbar__search" data-palette-open>
+    {% icon "search" %}
+    <span>{% trans "Search…" %}</span>
+    <kbd>⌘K</kbd>
+  </button>
+{% endblock %}
+
+{% block sidebar %}
+  <a class="sidebar__link" href="{% url 'superadmin_dashboard' %}" data-tip="{% trans 'Dashboard' %}" data-tip-side="right"
+     {% if active_nav == "dashboard" %}aria-current="page"{% endif %}>
+    {% icon "grid" %}<span class="sidebar__link-text">{% trans "Dashboard" %}</span>
+  </a>
+
+  <p class="sidebar__group">{% trans "Platform" %}</p>
+
+  <a class="sidebar__link" href="{% url 'superadmin_companies' %}" data-tip="{% trans 'Companies' %}" data-tip-side="right"
+     {% if active_nav == "companies" %}aria-current="page"{% endif %}>
+    {% icon "building" %}<span class="sidebar__link-text">{% trans "Companies" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'superadmin_users' %}" data-tip="{% trans 'Users' %}" data-tip-side="right"
+     {% if active_nav == "users" %}aria-current="page"{% endif %}>
+    {% icon "users" %}<span class="sidebar__link-text">{% trans "Users" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'superadmin_contracts' %}" data-tip="{% trans 'Contracts' %}" data-tip-side="right"
+     {% if active_nav == "contracts" %}aria-current="page"{% endif %}>
+    {% icon "file-text" %}<span class="sidebar__link-text">{% trans "Contracts" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'superadmin_fleet' %}" data-tip="{% trans 'Fleet overview' %}" data-tip-side="right"
+     {% if active_nav == "fleet" %}aria-current="page"{% endif %}>
+    {% icon "car" %}<span class="sidebar__link-text">{% trans "Fleet overview" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'superadmin_bookings' %}" data-tip="{% trans 'Bookings' %}" data-tip-side="right"
+     {% if active_nav == "bookings" %}aria-current="page"{% endif %}>
+    {% icon "calendar" %}<span class="sidebar__link-text">{% trans "Bookings" %}</span>
+  </a>
+
+  <p class="sidebar__group">{% trans "Insight" %}</p>
+
+  <a class="sidebar__link" href="{% url 'superadmin_reports' %}" data-tip="{% trans 'Reports' %}" data-tip-side="right"
+     {% if active_nav == "reports" %}aria-current="page"{% endif %}>
+    {% icon "sheet" %}<span class="sidebar__link-text">{% trans "Reports" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'superadmin_activity' %}" data-tip="{% trans 'Activity log' %}" data-tip-side="right"
+     {% if active_nav == "activity" %}aria-current="page"{% endif %}>
+    {% icon "shield" %}<span class="sidebar__link-text">{% trans "Activity log" %}</span>
+  </a>
+
+  <p class="sidebar__group">{% trans "Support" %}</p>
+
+  <a class="sidebar__link" href="{% url 'superadmin_messages' %}" data-tip="{% trans 'Messages' %}" data-tip-side="right"
+     {% if active_nav == "messages" %}aria-current="page"{% endif %}>
+    {% icon "mail" %}<span class="sidebar__link-text">{% trans "Messages" %}</span>
+    {% if unread_count %}<span class="count">{{ unread_count }}</span>{% endif %}
+  </a>
+  <a class="sidebar__link" href="{% url 'admin:index' %}" data-tip="{% trans 'Django admin' %}" data-tip-side="right">
+    {% icon "settings" %}<span class="sidebar__link-text">{% trans "Django admin" %}</span>
+  </a>
+{% endblock %}
+
+{% block modals %}
+  {# Command palette (Ctrl/Cmd + K). Results come from a permission-checked endpoint. #}
+  <div class="palette" id="command-palette" hidden data-endpoint="{% url 'superadmin_search' %}">
+    <div class="modal__backdrop"></div>
+    <div class="palette__panel" role="dialog" aria-modal="true" aria-label="{% trans 'Search' %}">
+      <div class="palette__search">
+        {% icon "search" %}
+        <input type="search" data-palette-input autocomplete="off" spellcheck="false"
+               placeholder="{% trans 'Search companies, vehicles, bookings, customers…' %}"
+               aria-label="{% trans 'Search the platform' %}">
+      </div>
+      <div class="palette__results" data-palette-results></div>
+      <div class="palette__foot">
+        <span><kbd>↑</kbd><kbd>↓</kbd> {% trans "navigate" %}</span>
+        <span><kbd>↵</kbd> {% trans "open" %}</span>
+        <span><kbd>esc</kbd> {% trans "close" %}</span>
+      </div>
+    </div>
+  </div>
+  {% block extra_modals %}{% endblock %}
+{% endblock %}

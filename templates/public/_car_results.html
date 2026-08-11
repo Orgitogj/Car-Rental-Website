@@ -1,0 +1,17 @@
+{% load i18n ui %}
+{% if cars %}
+  <div class="results__grid">
+    {% for car in cars %}
+      {% include "components/car_card.html" with car=car query=querystring %}
+    {% endfor %}
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  {% empty_state
+      title=_("No vehicles match those filters")
+      text=_("Try widening your dates, raising the price ceiling, or clearing a category.")
+      icon_name="search"
+      action_url="?"
+      action_label=_("Clear all filters") %}
+{% endif %}

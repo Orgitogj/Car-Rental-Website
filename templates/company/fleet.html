@@ -1,0 +1,160 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{% trans "Fleet" %}{% endblock %}
+{% block page_title %}{% trans "Fleet" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Fleet" %}</h1>
+    <p>{% trans "Your vehicles, their pricing and how often they are booked." %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'company_report_export' 'fleet' %}">
+      {% icon "download" %}{% trans "Export" %}
+    </a>
+    {% if can_manage_company %}
+      <a class="btn btn--primary" href="{% url 'company_car_create' %}">
+        {% icon "plus" %}{% trans "Add vehicle" %}
+      </a>
+    {% else %}
+      {% restricted_action label=_("Add vehicle") icon_name="plus" variant="btn--primary" %}
+    {% endif %}
+  </div>
+</div>
+
+<form class="toolbar" method="get">
+  <div class="toolbar__search">
+    {% icon "search" %}
+    <input class="field__input" type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Brand or model…' %}" aria-label="{% trans 'Search fleet' %}">
+  </div>
+  <div class="toolbar__filters">
+    <select class="field__input field__input--select" name="type" aria-label="{% trans 'Category' %}">
+      <option value="">{% trans "All categories" %}</option>
+      {% for value, label in categories %}
+        <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select class="field__input field__input--select" name="availability" aria-label="{% trans 'Listing' %}">
+      <option value="">{% trans "All vehicles" %}</option>
+      <option value="listed" {% if availability == "listed" %}selected{% endif %}>{% trans "Listed" %}</option>
+      <option value="unlisted" {% if availability == "unlisted" %}selected{% endif %}>{% trans "Unlisted" %}</option>
+    </select>
+    <button type="submit" class="btn btn--sm">{% icon "filter" %}{% trans "Apply" %}</button>
+    {% if query or category or availability %}
+      <a class="btn btn--ghost btn--sm" href="{% url 'company_fleet' %}">{% trans "Clear" %}</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if cars %}
+  <div class="grid grid--cards">
+    {% for car in cars %}
+      <article class="car-card">
+        <div class="car-card__media">
+          {% with image=car.main_image %}
+            {% if image %}
+              <img src="{{ image.url }}" alt="{{ car.title }}" loading="lazy" width="480" height="300">
+            {% else %}
+              <span class="car-card__placeholder">{% icon "car" %}</span>
+            {% endif %}
+          {% endwith %}
+          <span class="car-card__tags">
+            {% if car.is_active %}
+              <span class="tag tag--brand">{% trans "Listed" %}</span>
+            {% else %}
+              <span class="tag">{% trans "Unlisted" %}</span>
+            {% endif %}
+            {% if car.active_count %}
+              <span class="tag tag--accent">{% trans "On the road" %}</span>
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="car-card__body">
+          <div>
+            <h3 class="car-card__title">{{ car.title }}</h3>
+            <p class="car-card__meta">{{ car.year }} · {{ car.get_car_type_display }} · {{ car.get_gear_display }}</p>
+          </div>
+
+          <div class="car-card__specs">
+            <span class="car-card__spec">{% icon "seat" %}{{ car.seats }}</span>
+            <span class="car-card__spec">{% icon "fuel" %}{{ car.get_fuel_display }}</span>
+            <span class="car-card__spec">{% icon "calendar" %}{{ car.booking_count }} {% trans "bookings" %}</span>
+          </div>
+
+          <div class="car-card__foot">
+            <p class="car-card__price">
+              <b>{% money car.price_per_day %}</b><span>/ {% trans "day" %}</span>
+            </p>
+
+            <div class="row row--tight">
+              {% if can_manage_company %}
+                <a class="btn btn--sm" href="{% url 'company_car_edit' car.id %}">
+                  {% icon "edit" %}{% trans "Edit" %}
+                </a>
+              {% else %}
+                {% restricted_action label=_("Edit") icon_name="edit" size="btn--sm" %}
+              {% endif %}
+              <div class="dropdown">
+                <button type="button" class="btn btn--ghost btn--icon btn--sm"
+                        data-dropdown="car-menu-{{ car.id }}"
+                        aria-label="{% trans 'More actions' %}">
+                  {% icon "chevron-down" %}
+                </button>
+                <div class="dropdown__menu" id="car-menu-{{ car.id }}" hidden>
+                  {# Read-only: stays live for everyone. #}
+                  <a class="dropdown__item" href="{% url 'car_detail' car.id %}" target="_blank" rel="noopener">
+                    {% icon "eye" %}{% trans "View public page" %}
+                  </a>
+                  {% if can_manage_company %}
+                    <form method="post" action="{% url 'company_car_toggle' car.id %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                      <button type="submit" class="dropdown__item">
+                        {% icon "tag" %}
+                        {% if car.is_active %}{% trans "Unlist" %}{% else %}{% trans "List" %}{% endif %}
+                      </button>
+                    </form>
+                  {% elif car.is_active %}
+                    {% restricted_action label=_("Unlist") icon_name="tag" base="dropdown__item" %}
+                  {% else %}
+                    {% restricted_action label=_("List") icon_name="tag" base="dropdown__item" %}
+                  {% endif %}
+                  <div class="dropdown__sep"></div>
+                  {% if can_manage_company %}
+                    <form method="post" action="{% url 'company_car_delete' car.id %}"
+                          data-confirm="{% blocktrans with title=car.title %}Delete {{ title }}? Its bookings will be removed too.{% endblocktrans %}">
+                      {% csrf_token %}
+                      <button type="submit" class="dropdown__item dropdown__item--danger">
+                        {% icon "trash" %}{% trans "Delete vehicle" %}
+                      </button>
+                    </form>
+                  {% else %}
+                    {% restricted_action label=_("Delete vehicle") icon_name="trash" base="dropdown__item" variant="dropdown__item--danger" %}
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% if query or category or availability %}
+      {% url 'company_fleet' as clear_url %}
+      {% empty_state title=_("No vehicles match") text=_("Try clearing the search or choosing a different category.") icon_name="search" action_url=clear_url action_label=_("Clear filters") %}
+    {% elif can_manage_company %}
+      {% url 'company_car_create' as add_url %}
+      {% empty_state title=_("Your fleet is empty") text=_("Add your first vehicle with photos and a daily rate, and it goes live on the public site immediately.") icon_name="car" action_url=add_url action_label=_("Add your first vehicle") %}
+    {% else %}
+      {% empty_state title=_("No vehicles listed") text=_("This company has not added any vehicles yet.") icon_name="car" %}
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

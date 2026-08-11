@@ -1,0 +1,47 @@
+{% load i18n ui %}
+<div class="field{% if wide %} field--wide{% endif %}">
+  {% if field.field.widget.input_type != "checkbox" %}
+    <label class="field__label" for="{{ field.id_for_label }}">
+      {{ field.label }}{% if field.field.required %}<span class="req" aria-hidden="true">*</span>{% endif %}
+      {% if optional_hint and not field.field.required %}
+        <span class="field__optional">{% trans "(Optional)" %}</span>
+      {% endif %}
+    </label>
+
+    {% if icon_name or toggle %}
+      <div class="field__control{% if toggle %} field__control--toggle{% endif %}">
+        {% if icon_name %}{% icon icon_name %}{% endif %}
+        {{ field }}
+        {% if toggle %}
+          <button type="button" class="field__toggle" data-password-toggle
+                  aria-pressed="false" aria-label="{% trans 'Show password' %}"
+                  data-label-show="{% trans 'Show password' %}"
+                  data-label-hide="{% trans 'Hide password' %}">
+            {% icon "eye" %}
+          </button>
+        {% endif %}
+      </div>
+    {% else %}
+      {{ field }}
+    {% endif %}
+  {% else %}
+    <label class="check">
+      {{ field }}
+      <span class="check__text"><strong>{{ field.label }}</strong></span>
+    </label>
+  {% endif %}
+
+  {% if field.help_text %}
+    <p class="field__hint" id="{{ field.id_for_label }}-hint">{{ field.help_text }}</p>
+  {% endif %}
+
+  {% for error in field.errors %}
+    <p class="field__error" role="alert">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/>
+      </svg>
+      {{ error }}
+    </p>
+  {% endfor %}
+</div>

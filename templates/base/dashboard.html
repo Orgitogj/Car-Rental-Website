@@ -1,0 +1,123 @@
+{% load static i18n ui %}
+{% get_current_language as LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE }}" data-currency="{{ CURRENCY }}">
+<head>
+  {% include "base/_head.html" %}
+  <title>{% block title %}{% trans "Console" %}{% endblock %} · Vantage</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="{% static 'css/layouts/dashboard.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+  <a class="skip-link" href="#main">{% trans "Skip to content" %}</a>
+  {% include "components/icons.html" %}
+  {% include "components/flags.html" %}
+  <div class="route-progress" aria-hidden="true"></div>
+
+  <div class="app">
+    <div class="app__scrim" aria-hidden="true"></div>
+
+    <aside class="sidebar" aria-label="{% block nav_label %}{% trans 'Console navigation' %}{% endblock %}">
+      <div class="sidebar__head">
+        {% block sidebar_brand %}
+          <span class="sidebar__mark">{% icon "car" %}</span>
+          <span class="sidebar__identity">
+            <span class="sidebar__name">Vantage</span>
+            <span class="sidebar__role">{% trans "Console" %}</span>
+          </span>
+        {% endblock %}
+      </div>
+
+      <nav class="sidebar__nav">
+        {% block sidebar %}{% endblock %}
+      </nav>
+
+      <div class="sidebar__foot">
+        <button type="button" class="sidebar__collapse" data-sidebar-collapse
+                aria-expanded="true" aria-label="{% trans 'Collapse sidebar' %}">
+          {% icon "chevrons-left" %}
+          <span>{% trans "Collapse" %}</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="app__main">
+      <header class="topbar">
+        <button type="button" class="btn btn--ghost btn--icon topbar__menu-btn"
+                data-sidebar-drawer aria-expanded="false" aria-label="{% trans 'Open navigation' %}">
+          {% icon "menu" %}
+        </button>
+
+        <div class="flex-1" style="min-width:0">
+          <p class="topbar__title">{% block page_title %}{% endblock %}</p>
+        </div>
+
+        <div class="topbar__actions">
+          {% block topbar_actions %}{% endblock %}
+
+          <button type="button" class="btn btn--ghost btn--icon" data-theme-toggle
+                  aria-pressed="false" aria-label="{% trans 'Toggle dark mode' %}" data-tip="{% trans 'Theme' %}">
+            {% icon "moon" %}
+          </button>
+
+          <a class="btn btn--ghost btn--icon" href="{% url 'home' %}" target="_blank"
+             rel="noopener" data-tip="{% trans 'View public site' %}"
+             aria-label="{% trans 'View public site' %}">{% icon "eye" %}</a>
+
+          <div class="dropdown">
+            <button type="button" class="btn btn--ghost" data-dropdown="console-account">
+              <span class="avatar avatar--sm">{{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}</span>
+              {% icon "chevron-down" %}
+            </button>
+            <div class="dropdown__menu" id="console-account" hidden>
+              <p class="dropdown__label">{{ user.email|default:user.username }}</p>
+              {% if user.is_superuser %}
+                <a class="dropdown__item" href="{% url 'superadmin_dashboard' %}">{% icon "grid" %}{% trans "Platform console" %}</a>
+              {% endif %}
+              <div class="dropdown__sep"></div>
+              <form method="post" action="{% url 'portal_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown__item dropdown__item--danger">
+                  {% icon "logout" %}{% trans "Sign out" %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </header>
+      {% if is_read_only_view %}
+        <div class="readonly-bar" role="status">
+          <span class="readonly-bar__icon">{% icon "eye" %}</span>
+          <span class="readonly-bar__text">
+            <strong>{% blocktrans with name=viewing_company.name %}Viewing {{ name }}{% endblocktrans %}</strong>
+            <span>{% trans "Read-only mode — you are inspecting this company as platform administrator. Changes are blocked by the server." %}</span>
+          </span>
+          <span class="readonly-bar__actions">
+            <a class="btn btn--sm" href="{% url 'superadmin_company_edit' viewing_company.id %}">
+              {% icon "settings" %}{% trans "Manage" %}
+            </a>
+            <a class="btn btn--sm btn--invert" href="{% url 'superadmin_company_exit' %}">
+              {% icon "x" %}{% trans "Exit" %}
+            </a>
+          </span>
+        </div>
+      {% endif %}
+
+      {% include "components/flash.html" %}
+
+      <main id="main" class="app__content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-region" role="status" aria-live="polite"></div>
+
+  {% block modals %}{% endblock %}
+
+  <script type="module" src="{% static 'js/core/app.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

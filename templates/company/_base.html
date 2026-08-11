@@ -1,0 +1,83 @@
+{% extends "base/dashboard.html" %}
+{% load i18n ui %}
+{% block nav_label %}{% trans "Company navigation" %}{% endblock %}
+
+{% block sidebar_brand %}
+  <span class="sidebar__mark">
+    {% if viewing_company.logo_url %}
+      <img src="{{ viewing_company.logo_url }}" alt="" width="34" height="34">
+    {% else %}{% icon "building" %}{% endif %}
+  </span>
+  <span class="sidebar__identity">
+    <span class="sidebar__name">{{ viewing_company.name }}</span>
+    <span class="sidebar__role">
+      {% if is_read_only_view %}{% trans "Read-only" %}{% else %}{% trans "Company" %}{% endif %}
+    </span>
+  </span>
+{% endblock %}
+
+{% block sidebar %}
+  {% if contract_locked %}
+    {% comment %}
+      The panel is closed until the agreement is signed; showing links the
+      server would refuse anyway would only be a dead end.
+    {% endcomment %}
+    <a class="sidebar__link" href="{% url 'company_contract' %}" data-tip="{% trans 'Contract' %}" data-tip-side="right"
+       {% if active_nav == "contract" %}aria-current="page"{% endif %}>
+      {% icon "file-text" %}<span class="sidebar__link-text">{% trans "Contract" %}</span>
+      <span class="count count--warning">1</span>
+    </a>
+
+    <p class="sidebar__group">{% trans "Locked" %}</p>
+    <p class="sidebar__note">
+      {% trans "Sign your platform contract to unlock the dashboard, fleet, bookings and reports." %}
+    </p>
+  {% else %}
+  <a class="sidebar__link" href="{% url 'company_dashboard' %}" data-tip="{% trans 'Dashboard' %}" data-tip-side="right"
+     {% if active_nav == "dashboard" %}aria-current="page"{% endif %}>
+    {% icon "grid" %}<span class="sidebar__link-text">{% trans "Dashboard" %}</span>
+  </a>
+
+  <p class="sidebar__group">{% trans "Operations" %}</p>
+
+  <a class="sidebar__link" href="{% url 'company_bookings' %}" data-tip="{% trans 'Bookings' %}" data-tip-side="right"
+     {% if active_nav == "bookings" %}aria-current="page"{% endif %}>
+    {% icon "calendar" %}<span class="sidebar__link-text">{% trans "Bookings" %}</span>
+    {% if pending_badge %}<span class="count">{{ pending_badge }}</span>{% endif %}
+  </a>
+  <a class="sidebar__link" href="{% url 'company_fleet' %}" data-tip="{% trans 'Fleet' %}" data-tip-side="right"
+     {% if active_nav == "fleet" %}aria-current="page"{% endif %}>
+    {% icon "car" %}<span class="sidebar__link-text">{% trans "Fleet" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'company_customers' %}" data-tip="{% trans 'Customers' %}" data-tip-side="right"
+     {% if active_nav == "customers" %}aria-current="page"{% endif %}>
+    {% icon "users" %}<span class="sidebar__link-text">{% trans "Customers" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'company_maintenance' %}" data-tip="{% trans 'Maintenance' %}" data-tip-side="right"
+     {% if active_nav == "maintenance" %}aria-current="page"{% endif %}>
+    {% icon "wrench" %}<span class="sidebar__link-text">{% trans "Maintenance" %}</span>
+  </a>
+
+  <p class="sidebar__group">{% trans "Business" %}</p>
+
+  <a class="sidebar__link" href="{% url 'company_pricing' %}" data-tip="{% trans 'Pricing' %}" data-tip-side="right"
+     {% if active_nav == "pricing" %}aria-current="page"{% endif %}>
+    {% icon "tag" %}<span class="sidebar__link-text">{% trans "Pricing & extras" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'company_reports' %}" data-tip="{% trans 'Reports' %}" data-tip-side="right"
+     {% if active_nav == "reports" %}aria-current="page"{% endif %}>
+    {% icon "sheet" %}<span class="sidebar__link-text">{% trans "Reports" %}</span>
+  </a>
+
+  <p class="sidebar__group">{% trans "Settings" %}</p>
+
+  <a class="sidebar__link" href="{% url 'company_settings' %}" data-tip="{% trans 'Settings' %}" data-tip-side="right"
+     {% if active_nav == "settings" %}aria-current="page"{% endif %}>
+    {% icon "settings" %}<span class="sidebar__link-text">{% trans "Company settings" %}</span>
+  </a>
+  <a class="sidebar__link" href="{% url 'company_contract' %}" data-tip="{% trans 'Contract' %}" data-tip-side="right"
+     {% if active_nav == "contract" %}aria-current="page"{% endif %}>
+    {% icon "file-text" %}<span class="sidebar__link-text">{% trans "Contract" %}</span>
+  </a>
+  {% endif %}
+{% endblock %}

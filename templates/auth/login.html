@@ -1,0 +1,28 @@
+{% extends "base/auth.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Sign in" %}{% endblock %}
+{% block heading %}{% trans "Welcome back" %}{% endblock %}
+{% block subheading %}{% trans "Sign in to manage your bookings." %}{% endblock %}
+
+{% block form %}
+<form method="post" class="auth-form" data-loading-form novalidate>
+  {% csrf_token %}
+  {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+
+  {% field form.username icon_name="mail" %}
+  {% field form.password icon_name="lock" toggle=True %}
+
+  <button type="submit" class="btn btn--primary btn--lg btn--block">
+    {% icon "login" %}{% trans "Sign in" %}
+  </button>
+</form>
+{% endblock %}
+
+{% block foot %}
+  <p>{% trans "New here?" %} <a class="link link--strong" href="{% url 'register' %}">{% trans "Create an account" %}</a></p>
+  <p class="mt-2 tiny">
+    {% trans "Rental company or platform staff?" %}
+    <a class="link" href="{% url 'portal_login' %}">{% trans "Use the business portal" %}</a>
+  </p>
+{% endblock %}

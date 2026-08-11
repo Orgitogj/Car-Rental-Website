@@ -1,0 +1,82 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+
+{% block title %}{% trans "Contact" %} · Vantage Rentals{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+  <div class="container page-banner__inner">
+    <p class="eyebrow">{% trans "Contact" %}</p>
+    <h1>{% trans "Talk to us" %}</h1>
+    <p class="lead">{% trans "Questions about a booking, or want to list your fleet? We reply within one business day." %}</p>
+  </div>
+</section>
+
+<div class="container section">
+  <div class="grid" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:var(--space-10);align-items:start">
+    <form method="post" class="card" data-loading-form novalidate>
+      {% csrf_token %}
+      <div class="card__body">
+        {% if form.non_field_errors %}
+          <div class="form-error mb-6" role="alert">
+            {% icon "alert" %}<span>{{ form.non_field_errors.0 }}</span>
+          </div>
+        {% endif %}
+
+        <div class="field-grid">
+          {% field form.full_name %}
+          {% field form.email %}
+          {% field form.subject wide=True %}
+          {% field form.message wide=True %}
+        </div>
+
+        {# Honeypot: hidden from people, irresistible to bots. #}
+        <div aria-hidden="true" style="position:absolute;left:-9999px">
+          {{ form.website }}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary btn--lg">
+            {% icon "mail" %}{% trans "Send message" %}
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <aside class="stack">
+      <div class="card">
+        <div class="card__body stack">
+          <div class="row">
+            <span class="feature__icon" style="width:38px;height:38px">{% icon "pin" %}</span>
+            <span><strong class="small">{% trans "Office" %}</strong><br><span class="small muted">{% trans "Tirana, Albania" %}</span></span>
+          </div>
+          <div class="row">
+            <span class="feature__icon" style="width:38px;height:38px">{% icon "mail" %}</span>
+            <span><strong class="small">{% trans "Email" %}</strong><br><a class="link small" href="mailto:info@carrental.com">info@carrental.com</a></span>
+          </div>
+          <div class="row">
+            <span class="feature__icon" style="width:38px;height:38px">{% icon "phone" %}</span>
+            <span><strong class="small">{% trans "Phone" %}</strong><br><a class="link small" href="tel:+355692963205">+355 69 296 3205</a></span>
+          </div>
+          <div class="row">
+            <span class="feature__icon" style="width:38px;height:38px">{% icon "clock" %}</span>
+            <span><strong class="small">{% trans "Hours" %}</strong><br><span class="small muted">{% trans "Mon–Sat, 08:00–20:00" %}</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card--sunken">
+        <div class="card__body">
+          <p class="card__title">{% trans "Already booked?" %}</p>
+          <p class="small muted mt-2">
+            {% trans "Look up your reservation with your reference — it's faster than emailing." %}
+          </p>
+          <a class="btn btn--subtle mt-4" href="{% url 'booking_lookup' %}">
+            {% icon "search" %}{% trans "Find my booking" %}
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

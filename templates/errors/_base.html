@@ -1,0 +1,21 @@
+{% extends "base/public.html" %}
+{% load i18n ui %}
+
+{% block content %}
+<div class="container error-page">
+  <div class="error-page__body">
+    <p class="error-page__code">{% block code %}{% endblock %}</p>
+    <h1 class="mt-4">{% block heading %}{% endblock %}</h1>
+    <p class="lead mt-3">{% block message %}{% endblock %}</p>
+
+    {% block detail %}{% endblock %}
+
+    <div class="row row--center row--wrap mt-8">
+      {% block actions %}
+        <a class="btn btn--primary" href="{% url 'home' %}">{% icon "arrow-left" %}{% trans "Back to home" %}</a>
+        <a class="btn" href="{% url 'cars' %}">{% trans "Browse vehicles" %}</a>
+      {% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

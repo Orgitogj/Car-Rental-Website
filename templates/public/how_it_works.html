@@ -1,0 +1,192 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "How it works" %} · Vantage Rentals{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/how-it-works.css' %}">{% endblock %}
+
+{% block content %}
+<section class="hiw">
+
+  {# ================= Intro ================= #}
+  <div class="hiw__wrap">
+    <div class="hiw__intro">
+      <div class="hiw__content">
+        <span class="hiw__label">{% trans "How it works" %}</span>
+        <h2>{% trans "How It Works" %}<br>{% trans "in 4 easy steps" %}</h2>
+        <p>{% trans "Renting a car has never been easier" %}</p>
+      </div>
+
+      <div class="hiw__figure">
+        <div class="hiw__arch">
+          {% if hero_car and hero_car.main_image %}
+            <img src="{{ hero_car.main_image.url }}" alt="{{ hero_car.title }}" loading="lazy">
+          {% else %}
+            <span class="hiw__arch-fallback">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22.875 8.625L21.75 9L21 10.5L19.1776 4.4253C18.9238 3.57933 18.1452 3 17.2619 3H6.73806C5.85484 3 5.0762 3.57934 4.82241 4.4253L3 10.5L2.25 9L1.125 8.625"/>
+                <path d="M1.5 19.468V21C1.5 21.8 2.2 22.5 3 22.5C3.8 22.5 4.5 21.8 4.5 21V19.555"/>
+                <path d="M22.5 19.468V21C22.5 21.8 21.8 22.5 21 22.5C20.2 22.5 19.5 21.8 19.5 21V19.5766"/>
+                <path d="M2.75 10.5H21.25C22.35 10.5 23.25 11.5 23.25 12.68V18.41C23.25 19 22.8 19.5 22.25 19.5H1.75C1.2 19.5 0.75 19 0.75 18.41V12.68C0.75 11.5 1.65 10.5 2.75 10.5Z"/>
+                <path d="M0.75 14.25H5L6.125 16.5"/>
+                <path d="M23.25 14.25H19L17.875 16.5"/>
+              </svg>
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ================= Steps ================= #}
+  <div class="hiw__wrap">
+    <div class="hiw__steps">
+
+      <div class="hiw__step">
+        <span class="hiw__step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/>
+          </svg>
+        </span>
+        <div class="hiw__step-head">
+          <span class="hiw__step-number">1</span>
+          <h3>{% trans "Search for Cars" %}</h3>
+        </div>
+        <p>{% trans "Browse our selection and find the perfect vehicle for your trip" %}</p>
+      </div>
+
+      <div class="hiw__step">
+        <span class="hiw__step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22.875 8.625L21.75 9L21 10.5L19.1776 4.4253C18.9238 3.57933 18.1452 3 17.2619 3H6.73806C5.85484 3 5.0762 3.57934 4.82241 4.4253L3 10.5L2.25 9L1.125 8.625"/>
+            <path d="M1.5 19.468V21C1.5 21.3978 1.65804 21.7794 1.93934 22.0607C2.22064 22.342 2.60218 22.5 3 22.5C3.39782 22.5 3.77936 22.342 4.06066 22.0607C4.34196 21.7794 4.5 21.3978 4.5 21V19.555"/>
+            <path d="M22.5 19.468V21C22.5 21.3978 22.342 21.7794 22.0607 22.0607C21.7794 22.342 21.3978 22.5 21 22.5C20.6022 22.5 20.2206 22.342 19.9393 22.0607C19.658 21.7794 19.5 21.3978 19.5 21V19.5766"/>
+            <path d="M2.75 10.5H12H21.25C21.7804 10.5 22.2891 10.7299 22.6642 11.139C23.0393 11.5482 23.25 12.1032 23.25 12.6818V18.4091C23.25 18.6984 23.1446 18.9759 22.9571 19.1805C22.7696 19.3851 22.5152 19.5 22.25 19.5H1.75C1.48478 19.5 1.23043 19.3851 1.04289 19.1805C0.855357 18.9759 0.75 18.6984 0.75 18.4091V12.6818C0.75 12.1032 0.960714 11.5482 1.33579 11.139C1.71086 10.7299 2.21957 10.5 2.75 10.5Z"/>
+            <path d="M0.75 14.25H5L6.125 16.5"/>
+            <path d="M14.25 16.5H9.75"/>
+            <path d="M23.25 14.25H19L17.875 16.5"/>
+          </svg>
+        </span>
+        <div class="hiw__step-head">
+          <span class="hiw__step-number">2</span>
+          <h3>{% trans "Compare & Select" %}</h3>
+        </div>
+        <p>{% trans "Review prices, features, and availability to choose your ideal car" %}</p>
+      </div>
+
+      <div class="hiw__step">
+        <span class="hiw__step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
+            <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+            <path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
+          </svg>
+        </span>
+        <div class="hiw__step-head">
+          <span class="hiw__step-number">3</span>
+          <h3>{% trans "Complete Booking" %}</h3>
+        </div>
+        <p>{% trans "Fill in your details and confirm your reservation" %}</p>
+      </div>
+
+      <div class="hiw__step">
+        <span class="hiw__step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/>
+            <path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/>
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+        </span>
+        <div class="hiw__step-head">
+          <span class="hiw__step-number">4</span>
+          <h3>{% trans "Pick Up & Drive" %}</h3>
+        </div>
+        <p>{% trans "Collect your car and enjoy your journey" %}</p>
+      </div>
+
+    </div>
+  </div>
+
+  {# ================= Benefits ================= #}
+  <div class="hiw__wrap">
+    <div class="hiw__benefits">
+
+      <div class="hiw__benefit">
+        <span class="hiw__benefit-icon">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </span>
+        <div>
+          <h4>{% trans "Trusted by Thousands" %}</h4>
+          <p>{% trans "Join thousands of satisfied customers" %}</p>
+        </div>
+      </div>
+
+      <div class="hiw__benefit">
+        <span class="hiw__benefit-icon">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>
+            <circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <h4>{% trans "Best Prices Guaranteed" %}</h4>
+          <p>{% trans "We offer the most competitive rates" %}</p>
+        </div>
+      </div>
+
+      <div class="hiw__benefit">
+        <span class="hiw__benefit-icon">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/>
+            <path d="M21 16v2a4 4 0 0 1-4 4h-5"/>
+          </svg>
+        </span>
+        <div>
+          <h4>{% trans "24/7 Support" %}</h4>
+          <p>{% trans "Our team is always ready to help" %}</p>
+        </div>
+      </div>
+
+      <div class="hiw__benefit">
+        <span class="hiw__benefit-icon">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2v4"/><path d="M16 2v4"/>
+            <path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/>
+            <path d="M3 10h18"/><path d="m17 22 5-5"/><path d="m17 17 5 5"/>
+          </svg>
+        </span>
+        <div>
+          <h4>{% trans "Free Cancellation" %}</h4>
+          <p>{% trans "Cancel up to 48 hours before pickup" %}</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {# ================= CTA ================= #}
+  <div class="hiw__wrap">
+    <div class="hiw__cta">
+      <div>
+        <h2>{% trans "Ready to rent?" %}</h2>
+        <p>{% trans "Find the perfect car for your next trip" %}</p>
+      </div>
+      <a class="hiw__cta-btn" href="{% url 'cars' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/>
+        </svg>
+        {% trans "Search cars" %}
+      </a>
+    </div>
+  </div>
+
+</section>
+{% endblock %}

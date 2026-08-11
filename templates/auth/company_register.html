@@ -1,0 +1,111 @@
+{% extends "base/auth.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Company Registration" %}{% endblock %}
+{% block heading %}{% trans "Company Registration" %}{% endblock %}
+{% block subheading %}{% trans "Create your company account to get started." %}{% endblock %}
+{% block card_class %} auth-card--wide{% endblock %}
+
+{% block card_body %}
+
+<form method="post" class="auth-form wizard" enctype="multipart/form-data"
+      data-wizard data-step="{{ step }}" data-loading-form novalidate>
+  {% csrf_token %}
+
+  <ol class="stepper" aria-label="{% trans 'Registration steps' %}">
+    <li class="stepper__step" data-step-marker="1" aria-current="step">
+      <span class="stepper__dot">1</span>
+      <span class="stepper__label">{% trans "Personal" %}</span>
+    </li>
+    <li class="stepper__step" data-step-marker="2">
+      <span class="stepper__dot">2</span>
+      <span class="stepper__label">{% trans "Business" %}</span>
+    </li>
+  </ol>
+
+  {% if form.non_field_errors %}
+    <div class="form-error" role="alert">{% icon "alert" %}<span>{{ form.non_field_errors.0 }}</span></div>
+  {% endif %}
+
+  {# ---------------- Step 1 · the person who owns the account ---------------- #}
+  <section class="wizard__pane" data-pane="1">
+    <h2 class="wizard__title">{% trans "Personal Information" %}</h2>
+
+    <div class="auth-form__grid">
+      {% field form.first_name icon_name="user" %}
+      {% field form.last_name icon_name="user" %}
+      {% field form.email icon_name="mail" wide=True %}
+      {% field form.phone icon_name="phone" wide=True %}
+      {% field form.password1 icon_name="lock" toggle=True wide=True %}
+      {% field form.password2 icon_name="lock" toggle=True wide=True %}
+    </div>
+
+    <button type="button" class="btn btn--primary btn--lg btn--block mt-4" data-wizard-next="2">
+      {% trans "Continue" %}
+    </button>
+  </section>
+
+  {# ---------------- Step 2 · the business ---------------------------------- #}
+  <section class="wizard__pane" data-pane="2">
+    <h2 class="wizard__title">{% trans "Business Information" %}</h2>
+
+    <div class="auth-form__grid">
+      {% field form.business_name icon_name="building" %}
+      {% field form.business_email icon_name="mail" %}
+      {% field form.legal_name icon_name="file-text" optional_hint=True %}
+      {% field form.city icon_name="pin" optional_hint=True %}
+      {% field form.address icon_name="map" optional_hint=True %}
+      {% field form.state icon_name="globe" optional_hint=True %}
+      {% field form.tin icon_name="hash" optional_hint=True %}
+      {% field form.tax_number icon_name="sheet" optional_hint=True %}
+    </div>
+
+    <div class="field mt-4">
+      <label class="field__label" for="{{ form.documents.id_for_label }}">
+        {{ form.documents.label }}
+      </label>
+
+      <label class="dropzone" data-dropzone>
+        <span class="dropzone__icon">{% icon "upload" %}</span>
+        <span class="dropzone__text">{% trans "Upload documents if you want to keep them locally for now" %}</span>
+        <span class="dropzone__hint">{% trans "PDF, JPG or PNG — maximum 10MB" %}</span>
+        <span class="dropzone__files" data-dropzone-files hidden></span>
+        {{ form.documents }}
+      </label>
+
+      {% for error in form.documents.errors %}
+        <p class="field__error" role="alert">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="field mt-4">
+      <label class="check">
+        {{ form.accept_terms }}
+        <span class="check__text">
+          <strong>{% trans "I accept the terms and privacy policy." %}</strong>
+          <span>{% trans "You will also be asked to read and sign the platform contract right after registering." %}</span>
+        </span>
+      </label>
+      {% for error in form.accept_terms.errors %}
+        <p class="field__error" role="alert">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="wizard__actions">
+      <button type="button" class="btn btn--lg" data-wizard-back="1">
+        {% trans "Back" %}
+      </button>
+      <button type="submit" class="btn btn--primary btn--lg">
+        {% trans "Create account" %}
+      </button>
+    </div>
+  </section>
+</form>
+
+<div class="auth-card__foot">
+  <p>
+    {% trans "Already have an account?" %}
+    <a class="link link--strong" href="{% url 'portal_login' %}">{% trans "Login" %}</a>
+  </p>
+</div>
+{% endblock %}

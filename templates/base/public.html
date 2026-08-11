@@ -1,0 +1,183 @@
+{% load static i18n ui %}
+{% get_current_language as LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE }}" data-currency="{{ CURRENCY }}">
+<head>
+  {% include "base/_head.html" %}
+  <title>{% block title %}{% trans "Vantage Rentals" %}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{% trans 'Book a rental car in minutes from trusted local companies. Transparent pricing, instant availability.' %}{% endblock %}">
+  <link rel="stylesheet" href="{% static 'css/layouts/public.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body class="page">
+  <a class="skip-link" href="#main">{% trans "Skip to content" %}</a>
+  {% include "components/icons.html" %}
+  {% include "components/flags.html" %}
+  <div class="route-progress" aria-hidden="true"></div>
+
+  <header class="navbar{% block navbar_class %}{% endblock %}">
+    <div class="container navbar__inner">
+      <a class="navbar__brand" href="{% url 'home' %}">
+        <span class="navbar__mark" aria-hidden="true"></span>
+        <span>Vantage<span style="color:var(--primary)">Rentals</span></span>
+      </a>
+
+      <nav class="navbar__nav" aria-label="{% trans 'Main' %}">
+        <a class="navbar__link" href="{% url 'home' %}"
+           {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>{% trans "Home" %}</a>
+        <a class="navbar__link" href="{% url 'cars' %}"
+           {% if request.resolver_match.url_name == 'cars' %}aria-current="page"{% endif %}>{% trans "Vehicles" %}</a>
+        <a class="navbar__link" href="{% url 'how_it_works' %}"
+           {% if request.resolver_match.url_name == 'how_it_works' %}aria-current="page"{% endif %}>{% trans "How it works" %}</a>
+        <a class="navbar__link" href="{% url 'functionalities' %}"
+           {% if request.resolver_match.url_name == 'functionalities' %}aria-current="page"{% endif %}>{% trans "Functionalities" %}</a>
+        <a class="navbar__link" href="{% url 'about' %}"
+           {% if request.resolver_match.url_name == 'about' %}aria-current="page"{% endif %}>{% trans "About" %}</a>
+        <a class="navbar__link" href="{% url 'contact' %}"
+           {% if request.resolver_match.url_name == 'contact' %}aria-current="page"{% endif %}>{% trans "Contact" %}</a>
+        <a class="navbar__link" href="{% url 'booking_lookup' %}"
+           {% if request.resolver_match.url_name == 'booking_lookup' %}aria-current="page"{% endif %}>{% trans "My booking" %}</a>
+      </nav>
+
+      <div class="navbar__actions">
+        {% include "components/language_menu.html" %}
+
+        <button type="button" class="btn btn--ghost btn--icon" data-theme-toggle
+                aria-pressed="false" aria-label="{% trans 'Toggle dark mode' %}"
+                data-tip="{% trans 'Theme' %}">
+          {% icon "moon" %}
+        </button>
+
+        {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button type="button" class="user-btn" data-dropdown="account-menu">
+              <span class="avatar avatar--sm">{{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}</span>
+              <span class="user-btn__name hide-mobile">{{ user.first_name|default:user.username }}</span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            <div class="dropdown__menu" id="account-menu" hidden>
+              {% if user.is_superuser %}
+                <a class="dropdown__item" href="{% url 'superadmin_dashboard' %}">{% icon "grid" %}{% trans "Platform console" %}</a>
+              {% elif user.company %}
+                <a class="dropdown__item" href="{% url 'company_dashboard' %}">{% icon "grid" %}{% trans "My dashboard" %}</a>
+              {% endif %}
+              <a class="dropdown__item" href="{% url 'booking_lookup' %}">{% icon "calendar" %}{% trans "Find a booking" %}</a>
+              <div class="dropdown__sep"></div>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown__item dropdown__item--danger">
+                  {% icon "logout" %}{% trans "Sign out" %}
+                </button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a class="nav-action" href="{% url 'login' %}">
+            {% icon "user" %}{% trans "Login" %}
+          </a>
+          <a class="nav-action" href="{% url 'register' %}">
+            {% icon "user-plus" %}{% trans "Sign Up" %}
+          </a>
+        {% endif %}
+
+        {# Company owners sign in to their own console, as on the reference. #}
+        {% if not user.is_authenticated %}
+          <a class="btn-companies" href="{% url 'portal_login' %}">
+            {% icon "building" %}<span>{% trans "For Companies" %}</span>
+          </a>
+        {% endif %}
+
+        <button type="button" class="navbar__toggle" aria-expanded="false"
+                aria-label="{% trans 'Menu' %}">
+          {% icon "menu" %}
+        </button>
+      </div>
+    </div>
+
+    <div class="navbar__drawer container">
+      <a class="navbar__link" href="{% url 'home' %}">{% trans "Home" %}</a>
+      <a class="navbar__link" href="{% url 'cars' %}">{% trans "Vehicles" %}</a>
+      <a class="navbar__link" href="{% url 'about' %}">{% trans "About" %}</a>
+      <a class="navbar__link" href="{% url 'how_it_works' %}">{% trans "How it works" %}</a>
+      <a class="navbar__link" href="{% url 'functionalities' %}">{% trans "Functionalities" %}</a>
+      <a class="navbar__link" href="{% url 'contact' %}">{% trans "Contact" %}</a>
+      <a class="navbar__link" href="{% url 'booking_lookup' %}">{% trans "My booking" %}</a>
+      {% if not user.is_authenticated %}
+        <a class="navbar__link" href="{% url 'login' %}">{% trans "Login" %}</a>
+        <a class="navbar__link" href="{% url 'register' %}">{% trans "Sign Up" %}</a>
+        <a class="navbar__link" href="{% url 'portal_login' %}">{% trans "For Companies" %}</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% include "components/flash.html" %}
+
+  <main id="main" class="page__main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <a class="footer__brand" href="{% url 'home' %}">
+            <span class="footer__mark" aria-hidden="true"></span>
+            Vantage Rentals
+          </a>
+          <p class="footer__tagline">
+            {% trans "One place to compare and book vehicles from trusted local rental companies. No hidden fees, no queues." %}
+          </p>
+          <div class="footer__social">
+            <a href="https://www.facebook.com/share/18GnizQphv/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook">{% icon "facebook" %}</a>
+            <a href="https://www.instagram.com/orgitogjoci" target="_blank" rel="noopener noreferrer" aria-label="Instagram">{% icon "instagram" %}</a>
+            <a href="https://www.linkedin.com/in/orgito-gjoci-5a4b7a34a" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">{% icon "linkedin" %}</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="footer__title">{% trans "Explore" %}</p>
+          <div class="footer__links">
+            <a href="{% url 'cars' %}">{% trans "All vehicles" %}</a>
+            <a href="{% url 'cars' %}?type=suv">{% trans "SUVs" %}</a>
+            <a href="{% url 'cars' %}?type=luxury">{% trans "Luxury" %}</a>
+            <a href="{% url 'cars' %}?type=economy">{% trans "Economy" %}</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="footer__title">{% trans "Company" %}</p>
+          <div class="footer__links">
+            <a href="{% url 'about' %}">{% trans "About us" %}</a>
+            <a href="{% url 'contact' %}">{% trans "Contact" %}</a>
+            <a href="{% url 'booking_lookup' %}">{% trans "Find my booking" %}</a>
+            <a href="{% url 'portal_login' %}">{% trans "List your fleet" %}</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="footer__title">{% trans "Get in touch" %}</p>
+          <div class="footer__links">
+            <span>{% trans "Tirana, Albania" %}</span>
+            <a href="mailto:info@carrental.com">info@carrental.com</a>
+            <a href="tel:+355692963205">+355 69 296 3205</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer__bar">
+        <p>&copy; {% now "Y" %} Vantage Rentals. {% trans "All rights reserved." %}</p>
+        <p>{% trans "Built with Django" %}</p>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast-region" role="status" aria-live="polite"></div>
+
+  <script type="module" src="{% static 'js/core/app.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

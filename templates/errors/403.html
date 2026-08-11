@@ -1,0 +1,29 @@
+{% extends "errors/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Not permitted" %}{% endblock %}
+{% block code %}403{% endblock %}
+{% block heading %}{% trans "You don't have access to that" %}{% endblock %}
+{% block message %}
+  {% trans "Your account isn't permitted to perform this action." %}
+{% endblock %}
+
+{% block detail %}
+  {% if detail %}
+    <div class="alert alert--warning mt-6" style="text-align:left;max-width:52ch;margin-inline:auto">
+      {% icon "lock" %}
+      <div><p class="alert__body small">{{ detail }}</p></div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block actions %}
+  <a class="btn btn--primary" href="{% url 'home' %}">{% icon "arrow-left" %}{% trans "Back to home" %}</a>
+  {% if user.is_superuser %}
+    <a class="btn" href="{% url 'superadmin_dashboard' %}">{% trans "Platform console" %}</a>
+  {% elif user.is_authenticated %}
+    <a class="btn" href="{% url 'company_dashboard' %}">{% trans "My dashboard" %}</a>
+  {% else %}
+    <a class="btn" href="{% url 'login' %}">{% trans "Sign in" %}</a>
+  {% endif %}
+{% endblock %}

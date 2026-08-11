@@ -1,0 +1,40 @@
+{% load i18n ui %}
+{% get_current_language as CURRENT %}
+{% get_available_languages as LANGUAGES %}
+{% get_language_info_list for LANGUAGES as languages %}
+
+<div class="dropdown">
+  <button type="button" class="lang" data-dropdown="language-menu"
+          aria-label="{% trans 'Change language' %}">
+    {% flag CURRENT %}
+    <span class="lang__code">{{ CURRENT }}</span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M6 9l6 6 6-6"/>
+    </svg>
+  </button>
+
+  <div class="dropdown__menu lang-menu" id="language-menu" hidden role="menu">
+    <p class="dropdown__label">{% trans "Language" %}</p>
+
+    {% for language in languages %}
+      <form action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="language" value="{{ language.code }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="lang-option" role="menuitem"
+                {% if language.code == CURRENT %}aria-current="true"{% endif %}>
+          <span class="lang-option__flag">{% flag language.code %}</span>
+          <span class="lang-option__name">{{ language.name_local|capfirst }}</span>
+          <span class="lang-option__code">{{ language.code }}</span>
+          {% if language.code == CURRENT %}
+            <svg class="lang-option__check" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          {% endif %}
+        </button>
+      </form>
+    {% endfor %}
+  </div>
+</div>

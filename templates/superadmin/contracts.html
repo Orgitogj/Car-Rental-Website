@@ -1,0 +1,155 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Contracts" %}{% endblock %}
+{% block page_title %}{% trans "Contracts" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Contracts" %}</h1>
+    <p>{% trans "Every partner agreement issued by the platform, and who has signed which version." %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn btn--primary" href="{% url 'superadmin_contract_template_create' %}">
+      {% icon "plus" %}{% trans "Publish new version" %}
+    </a>
+  </div>
+</div>
+
+{# ---------------- Versions ---------------- #}
+<section class="card mb-4">
+  <div class="card__head">
+    <p class="card__title">{% trans "Contract versions" %}</p>
+    {% if active_template %}
+      <span class="badge badge--brand">{% trans "In force" %}: v{{ active_template.version }}</span>
+    {% endif %}
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>{% trans "Version" %}</th>
+          <th>{% trans "Title" %}</th>
+          <th>{% trans "Published" %}</th>
+          <th class="table__num">{% trans "Signed" %}</th>
+          <th class="table__num">{% trans "Pending" %}</th>
+          <th>{% trans "State" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for template in templates %}
+          <tr>
+            <td><strong>v{{ template.version }}</strong></td>
+            <td>
+              <span class="table__cell-stack">
+                <span class="table__primary">{{ template.title }}</span>
+                <span class="table__secondary">{{ template.summary|truncatechars:80 }}</span>
+              </span>
+            </td>
+            <td>{{ template.published_at|date:"M j, Y"|default:"—" }}</td>
+            <td class="table__num">{{ template.signed_count }}</td>
+            <td class="table__num">{{ template.pending_count }}</td>
+            <td>
+              {% if template.is_active %}
+                <span class="badge badge--success">{% trans "Active" %}</span>
+              {% else %}
+                <span class="badge badge--neutral">{% trans "Superseded" %}</span>
+              {% endif %}
+              {% if template.is_locked %}
+                <span class="badge badge--info">{% icon "lock" %}{% trans "Locked" %}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{# ---------------- Company contracts ---------------- #}
+<div class="btn-group mb-4" role="group" aria-label="{% trans 'Filter by status' %}">
+  <a class="btn-group__item {% if not status %}is-active{% endif %}" href="?{% query_replace status='' page='' %}">
+    {% trans "All" %} <span class="muted">{{ counts.all }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'signed' %}is-active{% endif %}" href="?{% query_replace status='signed' page='' %}">
+    {% trans "Signed" %} <span class="muted">{{ counts.signed }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'pending_signature' %}is-active{% endif %}" href="?{% query_replace status='pending_signature' page='' %}">
+    {% trans "Pending signature" %} <span class="muted">{{ counts.pending }}</span>
+  </a>
+</div>
+
+<form class="toolbar" method="get">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <div class="toolbar__search">
+    {% icon "search" %}
+    <input class="field__input" type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Company name…' %}" aria-label="{% trans 'Search contracts' %}">
+  </div>
+  <div class="toolbar__filters">
+    <button type="submit" class="btn btn--sm">{% icon "filter" %}{% trans "Apply" %}</button>
+    {% if query %}<a class="btn btn--ghost btn--sm" href="{% url 'superadmin_contracts' %}">{% trans "Clear" %}</a>{% endif %}
+  </div>
+</form>
+
+{% if contracts %}
+  <div class="table-wrap table-wrap--responsive">
+    <table class="table table--responsive">
+      <thead>
+        <tr>
+          <th>{% trans "Contract ID" %}</th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Version" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Created" %}</th>
+          <th>{% trans "Signed" %}</th>
+          <th>{% trans "Signer" %}</th>
+          <th class="table__actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for contract in contracts %}
+          <tr>
+            <td data-label="{% trans 'Contract ID' %}"><span class="mono">{{ contract.reference }}</span></td>
+            <td data-label="{% trans 'Company' %}">
+              <span class="table__cell-stack">
+                <span class="table__primary">{{ contract.company.name }}</span>
+                <span class="table__secondary">{{ contract.company.email }}</span>
+              </span>
+            </td>
+            <td data-label="{% trans 'Version' %}">v{{ contract.version }}</td>
+            <td data-label="{% trans 'Status' %}">
+              <span class="badge badge--{{ contract.tone }}">
+                {% if contract.is_signed %}{% icon "check-circle" %}{% else %}{% icon "alert" %}{% endif %}
+                {{ contract.get_status_display }}
+              </span>
+            </td>
+            <td data-label="{% trans 'Created' %}">{{ contract.created_at|date:"M j, Y" }}</td>
+            <td data-label="{% trans 'Signed' %}">{{ contract.signed_at|date:"M j, Y"|default:"—" }}</td>
+            <td data-label="{% trans 'Signer' %}">
+              {% if contract.is_signed %}
+                <span class="table__cell-stack">
+                  <span>{{ contract.signer_name }}</span>
+                  <span class="table__secondary">{{ contract.signer_email }}</span>
+                </span>
+              {% else %}<span class="muted">—</span>{% endif %}
+            </td>
+            <td class="table__actions">
+              <a class="btn btn--sm" href="{% url 'superadmin_company_contract' contract.company_id %}?contract={{ contract.id }}">
+                {% icon "eye" %}{% trans "View" %}
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% empty_state title=_("No contracts match those filters") text=_("Try another status or clear the search.") icon_name="file-text" %}
+  </div>
+{% endif %}
+{% endblock %}

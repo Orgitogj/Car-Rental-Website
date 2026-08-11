@@ -1,0 +1,29 @@
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+
+<link rel="stylesheet" href="{% static 'css/base/reset.css' %}">
+<link rel="stylesheet" href="{% static 'css/base/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/base/typography.css' %}">
+<link rel="stylesheet" href="{% static 'css/base/utilities.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/buttons.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/datepicker.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/cards.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/tables.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/badges.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/states.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/overlays.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/navigation.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/contract.css' %}">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('cr.theme');
+      if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>

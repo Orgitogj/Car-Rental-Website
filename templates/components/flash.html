@@ -1,0 +1,14 @@
+{% load ui %}
+
+{% if messages %}
+  {% messages_payload messages as payload %}
+  {{ payload|json_script:"flash-messages" }}
+
+  <noscript>
+    <div class="container stack" style="margin-top: var(--space-4)">
+      {% for item in payload %}
+        <div class="alert alert--{{ item.tone }}"><span>{{ item.message }}</span></div>
+      {% endfor %}
+    </div>
+  </noscript>
+{% endif %}

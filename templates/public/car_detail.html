@@ -1,0 +1,251 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{{ car.title }} · Vantage Rentals{% endblock %}
+{% block meta_description %}{% blocktrans with title=car.title company=car.company.name %}Rent a {{ title }} from {{ company }}. Live availability and transparent pricing.{% endblocktrans %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/cars.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="row row--tight small muted" style="padding-top:var(--space-6)" aria-label="{% trans 'Breadcrumb' %}">
+    <a class="link" href="{% url 'cars' %}">{% trans "Vehicles" %}</a>
+    {% icon "chevron-right" %}
+    <span>{{ car.title }}</span>
+  </nav>
+
+  <div class="detail">
+    {# ================= LEFT: gallery + specs ================= #}
+    <div class="stack-lg">
+      <div>
+        <div class="gallery__main">
+          {% with main=car.main_image %}
+            {% if main %}
+              <img src="{{ main.url }}" alt="{{ car.title }}" data-gallery-main
+                   width="960" height="600" fetchpriority="high"
+                   style="transition:opacity var(--dur-fast) var(--ease-out)">
+            {% else %}
+              <span class="car-card__placeholder">{% icon "car" %}</span>
+            {% endif %}
+          {% endwith %}
+        </div>
+
+        {% if images|length > 1 %}
+          <div class="gallery__thumbs">
+            {% for image in images %}
+              <button type="button" class="gallery__thumb" data-gallery-thumb="{{ image.url }}"
+                      aria-current="{% if image == car.main_image %}true{% else %}false{% endif %}"
+                      aria-label="{% blocktrans with n=forloop.counter %}Photo {{ n }}{% endblocktrans %}">
+                <img src="{{ image.url }}" alt="" loading="lazy" width="120" height="90">
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div>
+        <div class="row row--between row--wrap">
+          <div>
+            <span class="badge badge--brand">{{ car.get_car_type_display }}</span>
+            <h1 class="mt-2">{{ car.title }}</h1>
+            <p class="muted">{{ car.year }} · {{ car.get_fuel_display }} · {{ car.get_gear_display }}</p>
+          </div>
+
+          <a class="company-tile" href="{% url 'cars' %}?company={{ car.company.id }}">
+            <span class="avatar">
+              {% if car.company.logo_url %}
+                <img src="{{ car.company.logo_url }}" alt="" width="40" height="40">
+              {% else %}{{ car.company.initials }}{% endif %}
+            </span>
+            <span>
+              <strong class="small">{{ car.company.name }}</strong><br>
+              <span class="tiny muted">
+                {% if car.company.city %}{{ car.company.city }} · {% endif %}
+                {% trans "View fleet" %}
+              </span>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      {% if car.description %}
+        <div class="prose">
+          <h2 class="h4 mb-2">{% trans "About this vehicle" %}</h2>
+          <p class="muted">{{ car.description|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+      <div>
+        <h2 class="h4 mb-4">{% trans "Specifications" %}</h2>
+        <div class="specs">
+          <div class="spec">
+            <span class="spec__icon">{% icon "seat" %}</span>
+            <span><span class="spec__label">{% trans "Seats" %}</span><br><span class="spec__value">{{ car.seats }}</span></span>
+          </div>
+          <div class="spec">
+            <span class="spec__icon">{% icon "door" %}</span>
+            <span><span class="spec__label">{% trans "Doors" %}</span><br><span class="spec__value">{{ car.doors }}</span></span>
+          </div>
+          <div class="spec">
+            <span class="spec__icon">{% icon "bag" %}</span>
+            <span><span class="spec__label">{% trans "Luggage" %}</span><br><span class="spec__value">{{ car.bags }}</span></span>
+          </div>
+          <div class="spec">
+            <span class="spec__icon">{% icon "gear-shift" %}</span>
+            <span><span class="spec__label">{% trans "Gearbox" %}</span><br><span class="spec__value">{{ car.get_gear_display }}</span></span>
+          </div>
+          <div class="spec">
+            <span class="spec__icon">{% icon "fuel" %}</span>
+            <span><span class="spec__label">{% trans "Fuel" %}</span><br><span class="spec__value">{{ car.get_fuel_display }}</span></span>
+          </div>
+          <div class="spec">
+            <span class="spec__icon">{% icon "bolt" %}</span>
+            <span><span class="spec__label">{% trans "Power" %}</span><br><span class="spec__value">{{ car.power }} HP</span></span>
+          </div>
+          {% if car.engine_size %}
+            <div class="spec">
+              <span class="spec__icon">{% icon "settings" %}</span>
+              <span><span class="spec__label">{% trans "Engine" %}</span><br><span class="spec__value">{{ car.engine_size }}</span></span>
+            </div>
+          {% endif %}
+          <div class="spec">
+            <span class="spec__icon">{% icon "calendar" %}</span>
+            <span><span class="spec__label">{% trans "Year" %}</span><br><span class="spec__value">{{ car.year }}</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert--info">
+        {% icon "info" %}
+        <div>
+          <p class="alert__title">{% trans "Good to know" %}</p>
+          <p class="alert__body small">
+            {% blocktrans count n=MIN_RENTAL_DAYS %}Minimum rental period is {{ n }} day.{% plural %}Minimum rental period is {{ n }} days.{% endblocktrans %}
+            {% trans "Payment is arranged directly with the rental company at pickup. You will receive a reference by email as soon as you book." %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {# ================= RIGHT: booking panel ================= #}
+    <aside class="booking-panel"
+           data-booking-panel
+           data-car-id="{{ car.id }}"
+           data-quote-endpoint="{% url 'api_quote' %}"
+           data-currency="{{ CURRENCY }}"
+           data-msg-idle="{% trans 'Choose your dates to see the total' %}"
+           data-msg-checking="{% trans 'Checking availability…' %}"
+           data-msg-error="{% trans 'Could not check availability right now' %}">
+
+      <div class="booking-panel__head">
+        <p class="booking-panel__price">
+          <b data-out-rate>{% money car.price_per_day %}</b>
+          <span class="muted">/ {% trans "day" %}</span>
+        </p>
+        <p class="small muted mt-2">{% trans "All taxes included. Extras priced per day." %}</p>
+      </div>
+
+      <form class="booking-panel__body" method="get" action="{% url 'checkout' car.id %}"
+            data-date-range data-min-days="{{ MIN_RENTAL_DAYS }}"
+            data-availability-calendar
+            data-availability-endpoint="{% url 'api_availability' car.id %}"
+            data-msg-hint="{% trans 'Select your pick-up date' %}"
+            data-msg-hint-end="{% trans 'Now choose your return date' %}"
+            data-msg-unavailable="{% trans 'Already booked' %}"
+            data-msg-checkout="{% trans 'Return only — booked from this day' %}"
+            data-msg-invalid="{% trans 'Not possible with these dates' %}"
+            data-msg-open="{% trans 'Available' %}"
+            data-msg-selected="{% trans 'Your dates' %}"
+            data-msg-prev="{% trans 'Previous month' %}"
+            data-msg-next="{% trans 'Next month' %}">
+
+        <div class="date-pair">
+          <div class="field">
+            <label class="field__label" for="pickup">{% trans "Pick-up" %}</label>
+            {% comment %}
+              The placeholder is ignored by the native control and shows once
+              the datepicker swaps the field to text.
+            {% endcomment %}
+            <input class="field__input" type="date" id="pickup" name="start" required
+                   min="{{ today }}" value="{{ start }}" data-date-start
+                   placeholder="{% trans 'Add date' %}">
+          </div>
+          <div class="field">
+            <label class="field__label" for="dropoff">{% trans "Return" %}</label>
+            <input class="field__input" type="date" id="dropoff" name="end" required
+                   min="{{ today }}" value="{{ end }}" data-date-end
+                   placeholder="{% trans 'Add date' %}">
+          </div>
+        </div>
+
+        <div class="availability" data-availability data-state="idle" role="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+          </svg>
+          <span data-availability-text>{% trans "Choose your dates to see the total" %}</span>
+        </div>
+
+        {% if extras %}
+          <div>
+            <p class="field__label mb-2">{% trans "Add extras" %}</p>
+            <div class="extras">
+              {% for extra in extras %}
+                <label class="extra">
+                  <input type="checkbox" class="field__checkbox" name="extras"
+                         value="{{ extra.id }}" data-extra>
+                  <span class="extra__body">
+                    <span class="extra__name">{{ extra.name }}</span>
+                    {% if extra.description %}<span class="extra__desc">{{ extra.description }}</span>{% endif %}
+                  </span>
+                  <span class="extra__price">+{% money extra.price_per_day %}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="summary">
+          <div class="summary__row">
+            <span>{% trans "Days" %}</span>
+            <b data-out-days>0</b>
+          </div>
+          <div class="summary__row">
+            <span>{% trans "Vehicle" %}</span>
+            <b data-out-base>{% money 0 %}</b>
+          </div>
+          <div class="summary__row" data-out-extras-row hidden>
+            <span>{% trans "Extras" %}</span>
+            <b data-out-extras>{% money 0 %}</b>
+          </div>
+          <div class="summary__total">
+            <span>{% trans "Total" %}</span>
+            <b data-out-total>{% money 0 %}</b>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--lg btn--block" data-book-submit>
+          {% icon "check" %}
+          {% trans "Continue to booking" %}
+        </button>
+
+        <p class="tiny muted text-center">{% trans "No payment taken now." %}</p>
+      </form>
+    </aside>
+  </div>
+
+  {% if similar_cars %}
+    <section class="section--tight">
+      <div class="section-head">
+        <div class="section-head__text">
+          <h2 class="h3">{% trans "Similar vehicles" %}</h2>
+        </div>
+        <a class="btn" href="{% url 'cars' %}?type={{ car.car_type }}">{% trans "See all" %} {% icon "arrow-right" %}</a>
+      </div>
+      <div class="results__grid">
+        {% for similar in similar_cars %}
+          {% include "components/car_card.html" with car=similar %}
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

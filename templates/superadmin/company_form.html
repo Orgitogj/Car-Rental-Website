@@ -1,0 +1,148 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% if mode == "edit" %}{% trans "Edit company" %}{% else %}{% trans "Add company" %}{% endif %}{% endblock %}
+{% block page_title %}{% trans "Companies" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <nav class="row row--tight small muted mb-2">
+      <a class="link" href="{% url 'superadmin_companies' %}">{% trans "Companies" %}</a>
+      {% icon "chevron-right" %}
+      <span>{% if mode == "edit" %}{{ company.name }}{% else %}{% trans "New company" %}{% endif %}</span>
+    </nav>
+    <h1>{% if mode == "edit" %}{% trans "Edit company" %}{% else %}{% trans "Register a company" %}{% endif %}</h1>
+    <p>
+      {% if mode == "edit" %}
+        {% trans "The company profile as its owner maintains it." %}
+      {% else %}
+        {% trans "Creates the company and an owner login that can sign in to the business portal." %}
+      {% endif %}
+    </p>
+  </div>
+  {% if mode == "edit" %}
+    <div class="page-head__actions">
+      <a class="btn" href="{% url 'superadmin_company_enter' company.id %}">
+        {% icon "eye" %}{% trans "View dashboard" %}
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 320px;gap:var(--space-6);align-items:start">
+  <form method="post" enctype="multipart/form-data" class="card" data-loading-form novalidate>
+    {% csrf_token %}
+    <div class="card__body">
+      {% if form.non_field_errors %}
+        <div class="form-error mb-6" role="alert">
+          {% icon "alert" %}<span>{{ form.non_field_errors.0 }}</span>
+        </div>
+      {% endif %}
+
+      {% if mode == "edit" %}
+        <div class="alert alert--warning mb-6">
+          {% icon "lock" %}
+          <div>
+            <p class="alert__title">{% trans "Read-only" %}</p>
+            <p class="alert__body small">
+              {% trans "A company's profile is maintained by its owner in the business portal. Saving is blocked by the server." %}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <fieldset class="form-section" {% if mode == "edit" %}disabled{% endif %}>
+        <legend class="form-section__legend">{% trans "Company profile" %}</legend>
+        <div class="field-grid">
+          {% field form.name %}
+          {% field form.email %}
+          {% field form.phone %}
+          {% field form.website %}
+          {% field form.city %}
+          {% field form.address %}
+          {% field form.status %}
+          {% field form.description wide=True %}
+          {% field form.logo wide=True %}
+        </div>
+      </fieldset>
+
+      {% if mode == "create" %}
+        <fieldset class="form-section">
+          <legend class="form-section__legend">{% trans "Owner account" %}</legend>
+          <p class="form-section__hint">
+            {% trans "This person signs in at the business portal to manage the fleet. The email is their username." %}
+          </p>
+          <div class="field-grid">
+            {% field form.owner_full_name %}
+            {% field form.owner_email %}
+            {% field form.owner_password wide=True %}
+          </div>
+        </fieldset>
+      {% endif %}
+
+      <div class="form-actions">
+        {% if mode == "edit" %}
+          {% restricted_action label=_("Save changes") icon_name="check" variant="btn--primary" size="btn--lg" %}
+        {% else %}
+          <button type="submit" class="btn btn--primary btn--lg">
+            {% icon "check" %}{% trans "Create company" %}
+          </button>
+        {% endif %}
+        <a class="btn btn--ghost" href="{% url 'superadmin_companies' %}">
+          {% if mode == "edit" %}{% trans "Back" %}{% else %}{% trans "Cancel" %}{% endif %}
+        </a>
+      </div>
+    </div>
+  </form>
+
+  <aside class="stack">
+    {% if mode == "edit" %}
+      <div class="card">
+        <div class="card__head"><p class="card__title">{% trans "At a glance" %}</p></div>
+        <div class="card__body stack-sm">
+          <div class="row row--between">
+            <span class="small muted">{% trans "Status" %}</span>
+            <span class="badge badge--{{ company.status|status_tone }}">{{ company.get_status_display }}</span>
+          </div>
+          <div class="row row--between">
+            <span class="small muted">{% trans "Owner" %}</span>
+            <span class="small">{{ company.owner.username }}</span>
+          </div>
+          <div class="row row--between">
+            <span class="small muted">{% trans "Joined" %}</span>
+            <span class="small">{{ company.created_at|date:"j M Y" }}</span>
+          </div>
+          <div class="row row--between">
+            <span class="small muted">{% trans "Vehicles" %}</span>
+            <span class="small">{{ company.cars.count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card--sunken">
+        <div class="card__body">
+          <p class="card__title">{% trans "Danger zone" %}</p>
+          <p class="small muted mt-2">
+            {% trans "Deleting a company removes its vehicles, bookings and owner login permanently." %}
+          </p>
+          <a class="btn btn--danger-soft mt-4" href="{% url 'superadmin_company_delete' company.id %}">
+            {% icon "trash" %}{% trans "Delete company" %}
+          </a>
+        </div>
+      </div>
+    {% else %}
+      <div class="card card--sunken">
+        <div class="card__body">
+          <p class="card__title">{% trans "What happens next" %}</p>
+          <ul class="stack-sm small muted mt-3" style="list-style:disc;padding-left:1.1rem">
+            <li>{% trans "An owner login is created with the email and password you set." %}</li>
+            <li>{% trans "The standard add-on catalogue is seeded so they can start selling extras straight away." %}</li>
+            <li>{% trans "An active company appears in public search as soon as it lists a vehicle." %}</li>
+          </ul>
+        </div>
+      </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "errors/_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Something went wrong" %}{% endblock %}
+{% block code %}500{% endblock %}
+{% block heading %}{% trans "Something went wrong on our side" %}{% endblock %}
+{% block message %}
+  {% trans "The error has been logged and we're looking into it. Please try again in a moment — nothing you submitted was lost." %}
+{% endblock %}
+
+{% block actions %}
+  <button type="button" class="btn btn--primary" onclick="window.location.reload()">{% trans "Try again" %}</button>
+  <a class="btn" href="{% url 'home' %}">{% trans "Back to home" %}</a>
+{% endblock %}

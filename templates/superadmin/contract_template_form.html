@@ -1,0 +1,66 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "New contract version" %}{% endblock %}
+{% block page_title %}{% trans "New contract version" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Publish a new contract version" %}</h1>
+    <p>{% trans "Signed contracts are never rewritten. Publishing a version issues it to every company and asks them to sign it." %}</p>
+  </div>
+</div>
+
+{% if error %}
+  <div class="form-error mb-4" role="alert">{% icon "alert" %}<span>{{ error }}</span></div>
+{% endif %}
+
+<form method="post" class="card" data-loading-form
+      data-confirm="{% trans 'Publish this version? Companies will be asked to sign it before they can use their panel.' %}">
+  {% csrf_token %}
+
+  <div class="field-grid field-grid--2">
+    <div class="field">
+      <label class="field__label" for="version">{% trans "Version" %}<span class="req" aria-hidden="true">*</span></label>
+      <input class="field__input" type="text" id="version" name="version" value="{{ values.version }}"
+             placeholder="2.0" maxlength="20" required>
+      <p class="field__hint">
+        {% if current %}{% blocktrans with version=current.version %}Currently in force: v{{ version }}{% endblocktrans %}{% endif %}
+      </p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="title">{% trans "Title" %}<span class="req" aria-hidden="true">*</span></label>
+      <input class="field__input" type="text" id="title" name="title" value="{{ values.title }}"
+             maxlength="150" required>
+    </div>
+
+    <div class="field field--wide">
+      <label class="field__label" for="summary">{% trans "Summary" %}</label>
+      <input class="field__input" type="text" id="summary" name="summary" value="{{ values.summary }}" maxlength="255">
+    </div>
+
+    <div class="field field--wide">
+      <label class="field__label" for="body">{% trans "Contract text" %}<span class="req" aria-hidden="true">*</span></label>
+      <textarea class="field__input" id="body" name="body" rows="24" required>{{ values.body }}</textarea>
+      <p class="field__hint">
+        {% trans "A line starting with ## becomes a section heading; a blank line starts a new paragraph." %}
+      </p>
+    </div>
+  </div>
+
+  <label class="check mt-4">
+    <input type="checkbox" name="activate" value="on" checked>
+    <span class="check__text">
+      <strong>{% trans "Make this the version in force" %}</strong>
+      <span>{% trans "Companies with an unsigned older version have it expired and are asked to sign this one. Signed versions stay on record untouched." %}</span>
+    </span>
+  </label>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn--primary">{% icon "check" %}{% trans "Publish version" %}</button>
+    <a class="btn btn--ghost" href="{% url 'superadmin_contracts' %}">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

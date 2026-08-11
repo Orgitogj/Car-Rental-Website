@@ -1,0 +1,278 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_title %}{{ company.name }}{% endblock %}
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm hide-mobile" href="{% url 'company_reports' %}">
+    {% icon "download" %}{% trans "Export" %}
+  </a>
+{% endblock %}
+{% block content %}
+
+{% if company_contract %}
+  <section class="card contract-status-card mb-4">
+    <div class="card__head">
+      <p class="card__title">{% trans "Contract Status" %}</p>
+      <a class="btn btn--sm" href="{% url 'company_contract' %}">
+        {% icon "file-text" %}{% trans "View Contract" %}
+      </a>
+    </div>
+    <div class="card__body">
+      <div class="contract-status-card__row">
+        <span class="badge badge--{{ company_contract.tone }} badge--lg">
+          {% if company_contract.is_signed %}{% icon "check-circle" %}{% else %}{% icon "alert" %}{% endif %}
+          {{ company_contract.get_status_display }}
+        </span>
+      </div>
+      <div class="contract-status-card__meta">
+        {% if company_contract.is_signed %}
+          <p>{% trans "Signed on" %}: <strong>{{ company_contract.signed_at|date:"F j, Y" }}</strong></p>
+          <p>{% trans "Contract Version" %}: <strong>v{{ company_contract.version }}</strong></p>
+          <p>{% trans "Signed by" %}: <strong>{{ company_contract.signer_name }}</strong></p>
+        {% else %}
+          <p>{% trans "Your dashboard stays limited until the current agreement is signed." %}</p>
+          <p>{% trans "Contract Version" %}: <strong>v{{ company_contract.version }}</strong></p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Overview" %}</h1>
+    <p>{% blocktrans with n=m.period_days %}How your rental business has performed over the last {{ n }} days.{% endblocktrans %}</p>
+  </div>
+  <div class="page-head__actions">
+    {% if can_manage_company %}
+      <a class="btn btn--primary" href="{% url 'company_car_create' %}">
+        {% icon "plus" %}{% trans "Add vehicle" %}
+      </a>
+    {% else %}
+      {% restricted_action label=_("Add vehicle") icon_name="plus" variant="btn--primary" %}
+    {% endif %}
+    <a class="btn" href="{% url 'company_bookings' %}?status=pending">
+      {% icon "clock" %}{% trans "Pending" %}
+      {% if m.pending_count %}<span class="count">{{ m.pending_count }}</span>{% endif %}
+    </a>
+  </div>
+</div>
+
+{# ================= KPIs ================= #}
+<div class="grid grid--kpi">
+  {% include "components/kpi.html" with label=_("Revenue today") metric=m.revenue_today icon_name="trend" money=True hint=_("Confirmed bookings created today") %}
+  {% include "components/kpi.html" with label=_("Revenue this period") metric=m.revenue_period icon_name="tag" money=True %}
+  {% include "components/kpi.html" with label=_("Bookings today") metric=m.bookings_today icon_name="calendar" hint=_("New requests today") %}
+  {% include "components/kpi.html" with label=_("Active rentals") metric=m.bookings_total icon_name="car" hint=_("Lifetime bookings") %}
+</div>
+
+<div class="grid grid--kpi mt-4">
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "On the road now" %}</p>
+      <span class="kpi__icon">{% icon "car" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.active_rentals }}">0</span></p>
+    <div class="kpi__foot"><span>{% blocktrans with n=m.fleet_available %}{{ n }} vehicles free{% endblocktrans %}</span></div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "Fleet utilisation" %}</p>
+      <span class="kpi__icon">{% icon "trend" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.utilisation }}">0</span>%</p>
+    <div class="meter mt-2">
+      <div class="meter__track">
+        <div class="meter__fill" style="width: {{ m.utilisation }}%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "Pending requests" %}</p>
+      <span class="kpi__icon">{% icon "clock" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.pending_count }}">0</span></p>
+    <div class="kpi__foot">
+      {% if m.pending_count %}
+        <a class="link tiny" href="{% url 'company_bookings' %}?status=pending">{% trans "Review now" %}</a>
+      {% else %}
+        <span>{% trans "Nothing waiting" %}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "Customers" %}</p>
+      <span class="kpi__icon">{% icon "users" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.customers_total }}">0</span></p>
+    <div class="kpi__foot"><span>{% trans "Lifetime" %}</span></div>
+  </div>
+</div>
+
+{# ================= CHART + FLEET ================= #}
+<div class="panel-grid mt-6">
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <p class="card__title">{% trans "Revenue" %}</p>
+        <p class="card__subtitle">{% blocktrans with n=m.period_days %}Confirmed revenue, last {{ n }} days{% endblocktrans %}</p>
+      </div>
+      <p class="strong">{% money m.revenue_period.value %}</p>
+    </div>
+    <div class="card__body">
+      <div class="chart" data-chart="area" data-currency="{{ CURRENCY }}"
+           data-label="{% trans 'Daily confirmed revenue' %}"
+           data-series="{{ revenue_series|to_json }}"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <p class="card__title">{% trans "Fleet mix" %}</p>
+      <span class="badge badge--neutral">{{ m.fleet_active }} {% trans "listed" %}</span>
+    </div>
+    <div class="card__body stack">
+      {% if fleet_breakdown %}
+        {% for row in fleet_breakdown %}
+          <div class="bar-row">
+            <span class="small muted">{{ row.label }}</span>
+            <span class="bar-row__track">
+              <span class="bar-row__fill" style="width: {{ row.count|percentage_of:m.fleet_active }}%"></span>
+            </span>
+            <span class="bar-row__value">{{ row.count }}</span>
+          </div>
+        {% endfor %}
+      {% elif can_manage_company %}
+        {% url 'company_car_create' as add_url %}
+        {% empty_state title=_("No vehicles yet") text=_("Add your first vehicle to start taking bookings.") icon_name="car" action_url=add_url action_label=_("Add vehicle") compact=True %}
+      {% else %}
+        {% empty_state title=_("No vehicles yet") text=_("This company has not listed any vehicles.") icon_name="car" compact=True %}
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+{# ================= UPCOMING + ATTENTION ================= #}
+<div class="grid grid--2 mt-6">
+  <section class="card">
+    <div class="card__head">
+      <p class="card__title">{% trans "Upcoming pickups" %}</p>
+      <a class="link small" href="{% url 'company_bookings' %}?status=confirmed">{% trans "All" %}</a>
+    </div>
+    <div class="card__body--flush">
+      {% for booking in upcoming.pickups %}
+        <div class="list-item">
+          <span class="avatar avatar--sm">{% icon "car" %}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ booking.car.title }}</span>
+            <span class="list-item__meta">{{ booking.full_name }} · {{ booking.reference }}</span>
+          </span>
+          <span class="list-item__side">
+            <strong>{{ booking.start_date|date:"j M" }}</strong><br>
+            {% money booking.total_price %}
+          </span>
+        </div>
+      {% empty %}
+        {% empty_state title=_("No pickups scheduled") text=_("Confirmed bookings starting in the next two weeks appear here.") icon_name="calendar" compact=True %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <p class="card__title">{% trans "Upcoming returns" %}</p>
+      <a class="link small" href="{% url 'company_bookings' %}?status=confirmed">{% trans "All" %}</a>
+    </div>
+    <div class="card__body--flush">
+      {% for booking in upcoming.returns %}
+        <div class="list-item">
+          <span class="avatar avatar--sm">{% icon "arrow-left" %}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ booking.car.title }}</span>
+            <span class="list-item__meta">{{ booking.full_name }} · {{ booking.reference }}</span>
+          </span>
+          <span class="list-item__side"><strong>{{ booking.end_date|date:"j M" }}</strong></span>
+        </div>
+      {% empty %}
+        {% empty_state title=_("No returns due") text=_("Vehicles due back in the next two weeks appear here.") icon_name="calendar" compact=True %}
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+{# ================= NEEDS ATTENTION ================= #}
+<section class="card mt-6">
+  <div class="card__head">
+    <div>
+      <p class="card__title">{% trans "Needs your attention" %}</p>
+      <p class="card__subtitle">{% trans "Requests waiting, overdue returns and vehicles nobody has booked." %}</p>
+    </div>
+  </div>
+
+  <div class="card__body--flush">
+    {% if attention.pending or attention.overdue or attention.never_booked %}
+
+      {% for booking in attention.pending %}
+        <div class="list-item">
+          <span class="badge badge--warning">{% trans "Pending" %}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ booking.car.title }} · {{ booking.reference }}</span>
+            <span class="list-item__meta">
+              {{ booking.full_name }} · {{ booking.start_date|date:"j M" }} → {{ booking.end_date|date:"j M" }}
+            </span>
+          </span>
+          {% if can_manage_company %}
+            <form method="post" action="{% url 'company_booking_confirm' booking.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn btn--success-soft btn--sm">
+                {% icon "check" %}{% trans "Confirm" %}
+              </button>
+            </form>
+          {% else %}
+            {% restricted_action label=_("Confirm") icon_name="check" variant="btn--success-soft" size="btn--sm" %}
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      {% for booking in attention.overdue %}
+        <div class="list-item">
+          <span class="badge badge--danger">{% trans "Overdue" %}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ booking.car.title }} · {{ booking.reference }}</span>
+            <span class="list-item__meta">
+              {% blocktrans with date=booking.end_date|date:"j M" %}Was due back {{ date }}{% endblocktrans %}
+            </span>
+          </span>
+          <span class="list-item__side">{{ booking.phone }}</span>
+        </div>
+      {% endfor %}
+
+      {% for car in attention.never_booked %}
+        <div class="list-item">
+          <span class="badge badge--neutral">{% trans "Idle" %}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ car.title }}</span>
+            <span class="list-item__meta">{% trans "Listed but never booked" %}</span>
+          </span>
+          {% if can_manage_company %}
+            <a class="btn btn--ghost btn--sm" href="{% url 'company_car_edit' car.id %}">
+              {% icon "edit" %}{% trans "Review" %}
+            </a>
+          {% else %}
+            {% restricted_action label=_("Review") icon_name="edit" variant="btn--ghost" size="btn--sm" %}
+          {% endif %}
+        </div>
+      {% endfor %}
+
+    {% else %}
+      {% empty_state title=_("All clear") text=_("No pending requests, no overdue returns, and every vehicle has been booked at least once.") icon_name="check-circle" compact=True %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

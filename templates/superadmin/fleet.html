@@ -1,0 +1,99 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Fleet overview" %}{% endblock %}
+{% block page_title %}{% trans "Fleet overview" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Fleet overview" %}</h1>
+    <p>{% trans "Every vehicle listed on the platform, across all companies." %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'superadmin_report_export' 'fleet' %}?{{ request.GET.urlencode }}">
+      {% icon "download" %}{% trans "Export Excel" %}
+    </a>
+  </div>
+</div>
+
+<form class="toolbar" method="get">
+  <div class="toolbar__search">
+    {% icon "search" %}
+    <input class="field__input" type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Brand, model or company…' %}" aria-label="{% trans 'Search fleet' %}">
+  </div>
+  <div class="toolbar__filters">
+    <select class="field__input field__input--select" name="company" aria-label="{% trans 'Company' %}">
+      <option value="">{% trans "All companies" %}</option>
+      {% for c in companies %}
+        <option value="{{ c.id }}" {% if company_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn--sm">{% icon "filter" %}{% trans "Apply" %}</button>
+    {% if query or company_id %}
+      <a class="btn btn--ghost btn--sm" href="{% url 'superadmin_fleet' %}">{% trans "Clear" %}</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if cars %}
+  <div class="table-wrap table-wrap--responsive">
+    <table class="table table--responsive">
+      <thead>
+        <tr>
+          <th>{% trans "Vehicle" %}</th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Category" %}</th>
+          <th>{% trans "Specs" %}</th>
+          <th class="table__num">{% trans "Rate / day" %}</th>
+          <th class="table__num">{% trans "Bookings" %}</th>
+          <th>{% trans "Listed" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for car in cars %}
+          <tr>
+            <td data-label="{% trans 'Vehicle' %}">
+              <span class="table__with-avatar">
+                <span class="avatar">
+                  {% with image=car.main_image %}
+                    {% if image %}<img src="{{ image.url }}" alt="" loading="lazy" width="40" height="40">
+                    {% else %}{% icon "car" %}{% endif %}
+                  {% endwith %}
+                </span>
+                <span class="table__cell-stack">
+                  <span class="table__primary">{{ car.title }}</span>
+                  <span class="table__secondary">{{ car.year }}</span>
+                </span>
+              </span>
+            </td>
+            <td data-label="{% trans 'Company' %}">
+              <a class="link" href="{% url 'superadmin_company_enter' car.company.id %}">{{ car.company.name }}</a>
+            </td>
+            <td data-label="{% trans 'Category' %}">{{ car.get_car_type_display }}</td>
+            <td data-label="{% trans 'Specs' %}">
+              <span class="table__secondary">
+                {{ car.seats }} {% trans "seats" %} · {{ car.get_gear_display }} · {{ car.get_fuel_display }}
+              </span>
+            </td>
+            <td data-label="{% trans 'Rate / day' %}" class="table__num"><strong>{% money car.price_per_day %}</strong></td>
+            <td data-label="{% trans 'Bookings' %}" class="table__num">{{ car.booking_count }}</td>
+            <td data-label="{% trans 'Listed' %}">
+              <span class="badge badge--{% if car.is_active %}success{% else %}neutral{% endif %}">
+                {% if car.is_active %}{% trans "Listed" %}{% else %}{% trans "Unlisted" %}{% endif %}
+              </span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% empty_state title=_("No vehicles found") text=_("No vehicles match these filters yet.") icon_name="car" %}
+  </div>
+{% endif %}
+{% endblock %}

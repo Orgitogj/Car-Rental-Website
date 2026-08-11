@@ -1,0 +1,183 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "Confirm your booking" %} · Vantage Rentals{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/cars.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container checkout">
+  <div>
+    <nav class="steps" aria-label="{% trans 'Booking progress' %}">
+      <span class="step" data-state="done"><span class="step__num">{% icon "check" %}</span><span class="step__label">{% trans "Vehicle" %}</span></span>
+      <span class="step__sep" aria-hidden="true"></span>
+      <span class="step" data-state="done"><span class="step__num">{% icon "check" %}</span><span class="step__label">{% trans "Dates & extras" %}</span></span>
+      <span class="step__sep" aria-hidden="true"></span>
+      <span class="step" data-state="current"><span class="step__num">3</span><span class="step__label">{% trans "Your details" %}</span></span>
+      <span class="step__sep" aria-hidden="true"></span>
+      <span class="step"><span class="step__num">4</span><span class="step__label">{% trans "Confirmed" %}</span></span>
+    </nav>
+
+    <h1>{% trans "Almost there" %}</h1>
+    <p class="lead mt-2">{% trans "We just need your contact details so the rental company can reach you." %}</p>
+
+    {% if not available %}
+      <div class="alert alert--danger mt-6">
+        {% icon "alert" %}
+        <div>
+          <p class="alert__title">{% trans "These dates were just taken" %}</p>
+          <p class="alert__body small">
+            {% trans "Someone booked this vehicle while you were deciding. Please choose different dates." %}
+          </p>
+          <a class="btn btn--sm mt-3" href="{% url 'car_detail' car.id %}">
+            {% icon "arrow-left" %}{% trans "Change dates" %}
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if errors.general %}
+      <div class="form-error mt-6" role="alert">
+        {% icon "alert" %}
+        <span>{{ errors.general }}</span>
+      </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'checkout' car.id %}" class="card mt-6" data-loading-form novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="start" value="{{ start_date|date:'Y-m-d' }}">
+      <input type="hidden" name="end" value="{{ end_date|date:'Y-m-d' }}">
+      {% for extra_id in selected_extra_ids %}
+        <input type="hidden" name="extras" value="{{ extra_id }}">
+      {% endfor %}
+      <input type="hidden" name="confirm" value="1">
+
+      <div class="card__body">
+        <fieldset class="form-section">
+          <legend class="form-section__legend">{% trans "Your details" %}</legend>
+          <p class="form-section__hint">{% trans "Use the name shown on the driving licence you will present at pickup." %}</p>
+
+          <div class="field-grid">
+            <div class="field field--wide">
+              <label class="field__label" for="full_name">
+                {% trans "Full name" %}<span class="req" aria-hidden="true">*</span>
+              </label>
+              <input class="field__input" type="text" id="full_name" name="full_name"
+                     value="{{ form_data.full_name }}" autocomplete="name" required
+                     {% if errors.full_name %}aria-invalid="true"{% endif %}>
+              {% if errors.full_name %}<p class="field__error" role="alert">{% icon "alert" %}{{ errors.full_name }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="email">
+                {% trans "Email" %}<span class="req" aria-hidden="true">*</span>
+              </label>
+              <input class="field__input" type="email" id="email" name="email"
+                     value="{{ form_data.email }}" autocomplete="email" required
+                     {% if errors.email %}aria-invalid="true"{% endif %}>
+              <p class="field__hint">{% trans "Your reference and confirmation go here." %}</p>
+              {% if errors.email %}<p class="field__error" role="alert">{% icon "alert" %}{{ errors.email }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="phone">
+                {% trans "Phone" %}<span class="req" aria-hidden="true">*</span>
+              </label>
+              <input class="field__input" type="tel" id="phone" name="phone"
+                     value="{{ form_data.phone }}" autocomplete="tel" required
+                     {% if errors.phone %}aria-invalid="true"{% endif %}>
+              {% if errors.phone %}<p class="field__error" role="alert">{% icon "alert" %}{{ errors.phone }}</p>{% endif %}
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend class="form-section__legend">{% trans "Rental requirements" %}</legend>
+          <label class="check">
+            <input type="checkbox" name="terms" value="1" required
+                   {% if errors.terms %}aria-invalid="true"{% endif %}>
+            <span class="check__text">
+              <strong>{% trans "I meet the rental requirements" %}</strong>
+              <span>{% trans "I am at least 21, hold a valid driving licence, and will present it at pickup." %}</span>
+            </span>
+          </label>
+          {% if errors.terms %}<p class="field__error" role="alert">{% icon "alert" %}{{ errors.terms }}</p>{% endif %}
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary btn--lg" {% if not available %}disabled{% endif %}>
+            {% icon "check" %}{% trans "Confirm booking" %}
+          </button>
+          <a class="btn btn--ghost" href="{% url 'car_detail' car.id %}">{% trans "Back" %}</a>
+        </div>
+
+        <p class="tiny muted mt-4">
+          {% trans "No payment is taken now. You settle directly with the rental company at pickup." %}
+        </p>
+      </div>
+    </form>
+  </div>
+
+  {# ================= SUMMARY ================= #}
+  <aside class="checkout__aside">
+    <div class="card">
+      <div class="card__head">
+        <p class="card__title">{% trans "Booking summary" %}</p>
+      </div>
+
+      <div class="card__body stack">
+        <div class="row row--top">
+          <span class="avatar avatar--xl" style="border-radius:var(--radius-md)">
+            {% with main=car.main_image %}
+              {% if main %}<img src="{{ main.url }}" alt="" width="76" height="76">
+              {% else %}{% icon "car" %}{% endif %}
+            {% endwith %}
+          </span>
+          <span class="flex-1">
+            <strong>{{ car.title }}</strong><br>
+            <span class="small muted">{{ car.get_car_type_display }} · {{ car.get_gear_display }}</span><br>
+            <span class="tiny muted">{{ car.company.name }}</span>
+          </span>
+        </div>
+
+        <div class="summary">
+          <div class="summary__row">
+            <span>{% icon "calendar" %} {% trans "Pick-up" %}</span>
+            <b>{{ start_date|date:"D, j M Y" }}</b>
+          </div>
+          <div class="summary__row">
+            <span>{% icon "calendar" %} {% trans "Return" %}</span>
+            <b>{{ end_date|date:"D, j M Y" }}</b>
+          </div>
+          <div class="summary__row">
+            <span>{% trans "Duration" %}</span>
+            <b>{% blocktrans count n=quote.days %}{{ n }} day{% plural %}{{ n }} days{% endblocktrans %}</b>
+          </div>
+        </div>
+
+        <div class="summary">
+          <div class="summary__row">
+            <span>{% money quote.price_per_day %} × {{ quote.days }}</span>
+            <b>{% money quote.base_total %}</b>
+          </div>
+
+          {% for line in quote.extras %}
+            <div class="summary__row">
+              <span>{{ line.extra.name }}</span>
+              <b>{% money line.total %}</b>
+            </div>
+          {% endfor %}
+
+          <div class="summary__total">
+            <span>{% trans "Total" %}</span>
+            <b>{% money quote.total %}</b>
+          </div>
+        </div>
+
+        <p class="tiny muted">
+          {% icon "shield" %}
+          {% trans "Free cancellation until pickup. Your details are shared only with the rental company." %}
+        </p>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

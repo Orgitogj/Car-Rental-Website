@@ -1,0 +1,109 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "Find my booking" %} · Vantage Rentals{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/cars.css' %}">{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+  <div class="container page-banner__inner">
+    <h1>{% trans "Find my booking" %}</h1>
+    <p class="lead">{% trans "Enter the reference from your confirmation email and the name on the booking." %}</p>
+  </div>
+</section>
+
+<div class="container container--narrow section">
+  <form method="post" class="card" data-loading-form>
+    {% csrf_token %}
+    <div class="card__body">
+      <div class="field-grid">
+        {% field form.reference %}
+        {% field form.full_name %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary btn--lg">
+          {% icon "search" %}{% trans "Find booking" %}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  {% if searched and not booking %}
+    <div class="alert alert--warning mt-6" role="alert">
+      {% icon "alert" %}
+      <div>
+        <p class="alert__title">{% trans "No booking found" %}</p>
+        <p class="alert__body small">
+          {% trans "Check the reference and make sure the name matches exactly what you entered when booking." %}
+        </p>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if booking %}
+    <div class="card mt-8">
+      <div class="card__head">
+        <div>
+          <p class="card__title">{{ booking.reference }}</p>
+          <p class="card__subtitle">{{ booking.company.name }}</p>
+        </div>
+        <span class="badge badge--{{ booking.status_tone }} badge--lg">{{ booking.get_status_display }}</span>
+      </div>
+
+      <div class="card__body stack">
+        <div class="row row--top">
+          <span class="avatar avatar--xl" style="border-radius:var(--radius-md)">
+            {% with main=booking.car.main_image %}
+              {% if main %}<img src="{{ main.url }}" alt="" width="76" height="76">
+              {% else %}{% icon "car" %}{% endif %}
+            {% endwith %}
+          </span>
+          <span class="flex-1">
+            <strong>{{ booking.car.title }}</strong><br>
+            <span class="small muted">{{ booking.car.get_car_type_display }} · {{ booking.car.get_gear_display }}</span>
+          </span>
+        </div>
+
+        <div class="summary">
+          <div class="summary__row"><span>{% trans "Pick-up" %}</span><b>{{ booking.start_date|date:"D, j M Y" }}</b></div>
+          <div class="summary__row"><span>{% trans "Return" %}</span><b>{{ booking.end_date|date:"D, j M Y" }}</b></div>
+          <div class="summary__row"><span>{% trans "Booked on" %}</span><b>{{ booking.created_at|date:"j M Y" }}</b></div>
+          <div class="summary__total"><span>{% trans "Total" %}</span><b>{% money booking.total_price %}</b></div>
+        </div>
+
+        {% if booking.status == "pending" %}
+          <div class="alert alert--warning">
+            {% icon "clock" %}
+            <div>
+              <p class="alert__title">{% trans "Awaiting confirmation" %}</p>
+              <p class="alert__body small">{% trans "The rental company is reviewing your request. You'll get an email as soon as it's confirmed." %}</p>
+            </div>
+          </div>
+        {% elif booking.status == "confirmed" %}
+          <div class="alert alert--success">
+            {% icon "check-circle" %}
+            <div>
+              <p class="alert__title">{% trans "Confirmed" %}</p>
+              <p class="alert__body small">{% trans "Bring your driving licence and this reference to pickup." %}</p>
+            </div>
+          </div>
+        {% else %}
+          <div class="alert alert--danger">
+            {% icon "x-circle" %}
+            <div>
+              <p class="alert__title">{% trans "Cancelled" %}</p>
+              <p class="alert__body small">{% trans "This booking is no longer active. Contact the rental company if this is unexpected." %}</p>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="row row--tight tiny muted">
+          {% icon "mail" %}<a class="link" href="mailto:{{ booking.company.email }}">{{ booking.company.email }}</a>
+          {% if booking.company.phone %}
+            {% icon "phone" %}<a class="link" href="tel:{{ booking.company.phone }}">{{ booking.company.phone }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

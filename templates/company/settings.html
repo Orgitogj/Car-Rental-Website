@@ -1,0 +1,98 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{% trans "Company settings" %}{% endblock %}
+{% block page_title %}{% trans "Company settings" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Company settings" %}</h1>
+    <p>{% trans "How your company appears to customers on the public site." %}</p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 320px;gap:var(--space-6);align-items:start">
+  <form method="post" enctype="multipart/form-data" class="card" data-loading-form novalidate>
+    {% csrf_token %}
+    <div class="card__body">
+      {% if not can_manage_company %}
+        <div class="alert alert--warning mb-6">
+          {% icon "lock" %}
+          <div>
+            <p class="alert__title">{% trans "Read-only" %}</p>
+            <p class="alert__body small">
+              {% trans "You are viewing this company as platform administrator. Saving is blocked by the server." %}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <fieldset class="form-section" {% if not can_manage_company %}disabled{% endif %}>
+        <legend class="form-section__legend">{% trans "Profile" %}</legend>
+        <div class="field-grid">
+          {% field form.name %}
+          {% field form.email %}
+          {% field form.phone %}
+          {% field form.website %}
+          {% field form.city %}
+          {% field form.address %}
+          {% field form.description wide=True %}
+        </div>
+      </fieldset>
+
+      <fieldset class="form-section" {% if not can_manage_company %}disabled{% endif %}>
+        <legend class="form-section__legend">{% trans "Logo" %}</legend>
+        <p class="form-section__hint">{% trans "Square images work best. Shown beside your vehicles in search results." %}</p>
+        {% field form.logo wide=True %}
+      </fieldset>
+
+      <div class="form-actions">
+        {% if can_manage_company %}
+          <button type="submit" class="btn btn--primary btn--lg">
+            {% icon "check" %}{% trans "Save changes" %}
+          </button>
+        {% else %}
+          {% restricted_action label=_("Save changes") icon_name="check" variant="btn--primary" size="btn--lg" %}
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  <aside class="stack">
+    <div class="card">
+      <div class="card__head"><p class="card__title">{% trans "Preview" %}</p></div>
+      <div class="card__body">
+        <div class="company-tile">
+          <span class="avatar avatar--lg">
+            {% if company.logo_url %}
+              <img src="{{ company.logo_url }}" alt="" width="56" height="56">
+            {% else %}{{ company.initials }}{% endif %}
+          </span>
+          <span>
+            <strong>{{ company.name }}</strong><br>
+            <span class="tiny muted">{{ company.city|default:_("Location not set") }}</span>
+          </span>
+        </div>
+        <p class="tiny muted mt-4">{% trans "This is how customers see you on vehicle cards." %}</p>
+      </div>
+    </div>
+
+    <div class="card card--sunken">
+      <div class="card__body">
+        <p class="card__title">{% trans "Account status" %}</p>
+        <div class="row row--between mt-3">
+          <span class="small muted">{% trans "Status" %}</span>
+          <span class="badge badge--{{ company.status|status_tone }}">{{ company.get_status_display }}</span>
+        </div>
+        <div class="row row--between mt-2">
+          <span class="small muted">{% trans "Joined" %}</span>
+          <span class="small">{{ company.created_at|date:"j M Y" }}</span>
+        </div>
+        <p class="tiny muted mt-4">
+          {% trans "Only a platform administrator can change your account status. Contact support if something looks wrong." %}
+        </p>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

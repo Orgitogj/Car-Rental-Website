@@ -1,0 +1,173 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "Vehicles" %} · Vantage Rentals{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/cars.css' %}">{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+  <div class="container page-banner__inner">
+    <h1>{% trans "Find your vehicle" %}</h1>
+    <p class="lead">{% trans "Filter by dates, size and budget. We only show vehicles that are free to book." %}</p>
+  </div>
+</section>
+
+<div class="container">
+  <button type="button" class="btn filters__mobile-toggle mt-4" data-filters-open>
+    {% icon "filter" %}
+    {% trans "Filters" %}
+    {% if filters.active_count %}<span class="count">{{ filters.active_count }}</span>{% endif %}
+  </button>
+
+  <div class="search-layout">
+    {# ============ FILTER RAIL ============ #}
+    <form class="filters" method="get" action="{% url 'cars' %}" data-filter-form
+          aria-label="{% trans 'Filter vehicles' %}">
+      <div class="filters__head">
+        <strong>{% trans "Filters" %}</strong>
+        <button type="button" class="btn btn--ghost btn--sm hide-desktop" data-filters-close>
+          {% icon "x" %}
+        </button>
+        <a class="link small hide-mobile" href="{% url 'cars' %}" data-filter-reset>{% trans "Clear all" %}</a>
+      </div>
+
+      <div class="filters__body">
+        <div class="filters__group" data-date-range data-min-days="{{ MIN_RENTAL_DAYS }}">
+          <p class="filters__legend">{% trans "Rental dates" %}</p>
+          <div class="field">
+            <label class="field__label" for="f-start">{% trans "Pick-up" %}</label>
+            <input class="field__input" type="date" name="start" id="f-start"
+                   value="{{ filters.start|date:'Y-m-d'|default:'' }}" min="{{ today }}" data-date-start>
+          </div>
+          <div class="field">
+            <label class="field__label" for="f-end">{% trans "Return" %}</label>
+            <input class="field__input" type="date" name="end" id="f-end"
+                   value="{{ filters.end|date:'Y-m-d'|default:'' }}" min="{{ today }}" data-date-end>
+          </div>
+        </div>
+
+        <div class="filters__group">
+          <p class="filters__legend">{% trans "Price per day" %}</p>
+          <div class="filters__range">
+            <input class="field__input" type="number" name="price_min" inputmode="numeric"
+                   placeholder="{{ facets.price_low|floatformat:0 }}" min="0"
+                   value="{{ filters.price_min|floatformat:0|default_if_none:'' }}"
+                   aria-label="{% trans 'Minimum price' %}">
+            <span>—</span>
+            <input class="field__input" type="number" name="price_max" inputmode="numeric"
+                   placeholder="{{ facets.price_high|floatformat:0 }}" min="0"
+                   value="{{ filters.price_max|floatformat:0|default_if_none:'' }}"
+                   aria-label="{% trans 'Maximum price' %}">
+          </div>
+        </div>
+
+        <fieldset class="filters__group" style="border:0;padding:0;margin:0">
+          <legend class="filters__legend">{% trans "Category" %}</legend>
+          <div class="filters__options">
+            {% for value, label in facets.types %}
+              <label class="check">
+                <input type="checkbox" name="type" value="{{ value }}"
+                       {% if value in filters.types %}checked{% endif %}>
+                <span class="check__text">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset class="filters__group" style="border:0;padding:0;margin:0">
+          <legend class="filters__legend">{% trans "Gearbox" %}</legend>
+          <div class="filters__options">
+            {% for value, label in facets.gears %}
+              <label class="check">
+                <input type="checkbox" name="gear" value="{{ value }}"
+                       {% if value in filters.gears %}checked{% endif %}>
+                <span class="check__text">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset class="filters__group" style="border:0;padding:0;margin:0">
+          <legend class="filters__legend">{% trans "Fuel" %}</legend>
+          <div class="filters__options">
+            {% for value, label in facets.fuels %}
+              <label class="check">
+                <input type="checkbox" name="fuel" value="{{ value }}"
+                       {% if value in filters.fuels %}checked{% endif %}>
+                <span class="check__text">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        {% if facets.brands %}
+          <fieldset class="filters__group" style="border:0;padding:0;margin:0">
+            <legend class="filters__legend">{% trans "Brand" %}</legend>
+            <div class="filters__options">
+              {% for brand in facets.brands %}
+                <label class="check">
+                  <input type="checkbox" name="brand" value="{{ brand }}"
+                         {% if brand in filters.brands %}checked{% endif %}>
+                  <span class="check__text">{{ brand }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+        {% endif %}
+
+        <div class="filters__group">
+          <p class="filters__legend">{% trans "Minimum seats" %}</p>
+          <select class="field__input field__input--select" name="seats_min" aria-label="{% trans 'Minimum seats' %}">
+            <option value="">{% trans "Any" %}</option>
+            {% for n in "2457"|make_list %}
+              <option value="{{ n }}" {% if filters.seats_min|stringformat:"s" == n %}selected{% endif %}>{{ n }}+</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filters__group">
+          <p class="filters__legend">{% trans "Rental company" %}</p>
+          <select class="field__input field__input--select" name="company" aria-label="{% trans 'Rental company' %}">
+            <option value="">{% trans "All companies" %}</option>
+            {% for company in facets.companies %}
+              <option value="{{ company.id }}" {% if filters.company_id == company.id %}selected{% endif %}>
+                {{ company.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="filters__foot">
+        {# Submit exists for the no-JavaScript path; JS applies changes live. #}
+        <button type="submit" class="btn btn--primary btn--block">
+          {% icon "search" %}{% trans "Apply filters" %}
+        </button>
+      </div>
+    </form>
+
+    {# ============ RESULTS ============ #}
+    <div>
+      <div class="results__head">
+        <p class="results__count">
+          <b>{{ total_count }}</b>
+          {% blocktrans count n=total_count %}vehicle available{% plural %}vehicles available{% endblocktrans %}
+        </p>
+
+        <div class="row row--tight">
+          <label class="tiny muted" for="sort">{% trans "Sort" %}</label>
+          <select class="field__input field__input--select" id="sort" data-sort-select
+                  style="min-height:38px;width:auto">
+            {% for value, label in sort_options.items %}
+              <option value="{{ value }}" {% if current_sort == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div data-results-region aria-live="polite">
+        {% include "public/_car_results.html" %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% load ui %}
+<div class="empty{% if compact %} empty--compact{% endif %}">
+  <div class="empty__art">{% icon icon_name %}</div>
+  <div>
+    <p class="empty__title">{{ title }}</p>
+    {% if text %}<p class="empty__text">{{ text }}</p>{% endif %}
+  </div>
+  {% if action_url and action_label %}
+    <div class="empty__actions">
+      <a class="btn btn--primary" href="{{ action_url }}">{{ action_label }}</a>
+    </div>
+  {% endif %}
+</div>

@@ -1,0 +1,99 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Bookings" %}{% endblock %}
+{% block page_title %}{% trans "Bookings overview" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Bookings" %}</h1>
+    <p>{% trans "Every booking across the platform, read-only." %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'superadmin_report_export' 'bookings' %}?{{ request.GET.urlencode }}">
+      {% icon "download" %}{% trans "Export Excel" %}
+    </a>
+  </div>
+</div>
+
+<form class="toolbar" method="get">
+  <div class="toolbar__search">
+    {% icon "search" %}
+    <input class="field__input" type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Reference, customer or company…' %}"
+           aria-label="{% trans 'Search bookings' %}">
+  </div>
+  <div class="toolbar__filters">
+    <select class="field__input field__input--select" name="company" aria-label="{% trans 'Company' %}">
+      <option value="">{% trans "All companies" %}</option>
+      {% for c in companies %}
+        <option value="{{ c.id }}" {% if company_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <select class="field__input field__input--select" name="status" aria-label="{% trans 'Status' %}">
+      <option value="">{% trans "All statuses" %}</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <input class="field__input" type="date" name="from" value="{{ date_from }}" aria-label="{% trans 'From' %}">
+    <input class="field__input" type="date" name="to" value="{{ date_to }}" aria-label="{% trans 'To' %}">
+    <button type="submit" class="btn btn--sm">{% icon "filter" %}{% trans "Apply" %}</button>
+    {% if query or status or company_id or date_from %}
+      <a class="btn btn--ghost btn--sm" href="{% url 'superadmin_bookings' %}">{% trans "Clear" %}</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if bookings %}
+  <div class="table-wrap table-wrap--responsive">
+    <table class="table table--responsive">
+      <thead>
+        <tr>
+          <th>{% trans "Reference" %}</th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Vehicle" %}</th>
+          <th>{% trans "Customer" %}</th>
+          <th>{% trans "Dates" %}</th>
+          <th class="table__num">{% trans "Total" %}</th>
+          <th>{% trans "Status" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for booking in bookings %}
+          <tr>
+            <td data-label="{% trans 'Reference' %}">
+              <span class="mono strong">{{ booking.reference }}</span>
+              <span class="table__secondary">{{ booking.created_at|date:"j M Y" }}</span>
+            </td>
+            <td data-label="{% trans 'Company' %}">
+              <a class="link" href="{% url 'superadmin_company_enter' booking.company.id %}">{{ booking.company.name }}</a>
+            </td>
+            <td data-label="{% trans 'Vehicle' %}">{{ booking.car.title }}</td>
+            <td data-label="{% trans 'Customer' %}">
+              <span class="table__cell-stack">
+                <span class="table__primary">{{ booking.full_name }}</span>
+                <span class="table__secondary">{{ booking.email }}</span>
+              </span>
+            </td>
+            <td data-label="{% trans 'Dates' %}">
+              {{ booking.start_date|date:"j M" }} → {{ booking.end_date|date:"j M Y" }}
+            </td>
+            <td data-label="{% trans 'Total' %}" class="table__num"><strong>{% money booking.total_price %}</strong></td>
+            <td data-label="{% trans 'Status' %}">
+              <span class="badge badge--{{ booking.status_tone }}">{{ booking.get_status_display }}</span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% empty_state title=_("No bookings found") text=_("Nothing matches these filters. Try widening the date range or clearing the search.") icon_name="calendar" %}
+  </div>
+{% endif %}
+{% endblock %}

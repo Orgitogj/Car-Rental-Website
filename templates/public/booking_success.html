@@ -1,0 +1,82 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "Booking confirmed" %} · Vantage Rentals{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/cars.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container container--narrow confirm-hero">
+  <div class="confirm-hero__check">{% icon "check" %}</div>
+
+  <h1>{% trans "You're booked" %}</h1>
+  <p class="lead mt-3">
+    {% blocktrans with name=booking.full_name company=booking.company.name %}Thanks {{ name }} — {{ company }} has your request and will confirm shortly. We've emailed your reference.{% endblocktrans %}
+  </p>
+
+  <p class="mt-6"><span class="reference-pill">{% icon "tag" %} {{ booking.reference }}</span></p>
+
+  <div class="card mt-8" style="text-align:left">
+    <div class="card__head">
+      <p class="card__title">{% trans "Your rental" %}</p>
+      <span class="badge badge--{{ booking.status_tone }}">{{ booking.get_status_display }}</span>
+    </div>
+
+    <div class="card__body stack">
+      <div class="row row--top">
+        <span class="avatar avatar--xl" style="border-radius:var(--radius-md)">
+          {% with main=booking.car.main_image %}
+            {% if main %}<img src="{{ main.url }}" alt="" width="76" height="76">
+            {% else %}{% icon "car" %}{% endif %}
+          {% endwith %}
+        </span>
+        <span class="flex-1">
+          <strong>{{ booking.car.title }}</strong><br>
+          <span class="small muted">{{ booking.car.get_car_type_display }} · {{ booking.car.get_gear_display }}</span><br>
+          <span class="tiny muted">{{ booking.company.name }}{% if booking.company.city %} · {{ booking.company.city }}{% endif %}</span>
+        </span>
+      </div>
+
+      <div class="summary">
+        <div class="summary__row"><span>{% trans "Pick-up" %}</span><b>{{ booking.start_date|date:"D, j M Y" }}</b></div>
+        <div class="summary__row"><span>{% trans "Return" %}</span><b>{{ booking.end_date|date:"D, j M Y" }}</b></div>
+        <div class="summary__row"><span>{% trans "Duration" %}</span><b>{% blocktrans count n=booking.days %}{{ n }} day{% plural %}{{ n }} days{% endblocktrans %}</b></div>
+      </div>
+
+      <div class="summary">
+        <div class="summary__row">
+          <span>{% money booking.price_per_day %} × {{ booking.days }}</span>
+          <b>{% money booking.base_total %}</b>
+        </div>
+        {% for extra in booking.extras.all %}
+          <div class="summary__row"><span>{{ extra.name }}</span><b>{% money extra.total %}</b></div>
+        {% endfor %}
+        <div class="summary__total"><span>{% trans "Total" %}</span><b>{% money booking.total_price %}</b></div>
+      </div>
+
+      <div class="alert alert--info">
+        {% icon "info" %}
+        <div>
+          <p class="alert__title">{% trans "What happens next" %}</p>
+          <p class="alert__body small">
+            {% trans "The rental company reviews your request and confirms by email. Bring your driving licence and this reference to pickup. Payment is arranged directly with them." %}
+          </p>
+        </div>
+      </div>
+
+      <div class="row row--wrap">
+        <a class="btn btn--primary" href="{% url 'booking_lookup' %}">
+          {% icon "search" %}{% trans "Track this booking" %}
+        </a>
+        <a class="btn" href="{% url 'cars' %}">{% trans "Browse more vehicles" %}</a>
+        <button type="button" class="btn btn--ghost" onclick="window.print()">
+          {% icon "sheet" %}{% trans "Print" %}
+        </button>
+      </div>
+
+      <div class="row row--tight tiny muted">
+        {% icon "mail" %} <span>{{ booking.email }}</span>
+        {% icon "phone" %} <span>{{ booking.phone }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

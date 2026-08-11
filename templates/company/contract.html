@@ -1,0 +1,270 @@
+{% extends "company/_base.html" %}
+{% load static i18n ui %}
+
+{% block title %}{% trans "Contract" %}{% endblock %}
+{% block page_title %}{% trans "Platform contract" %}{% endblock %}
+
+{% block content %}
+{% if not contract %}
+  <div class="card">
+    {% empty_state title=_("No contract on file") text=_("Nothing needs signing right now. Contact the platform team if you expected an agreement here.") icon_name="file-text" %}
+  </div>
+{% else %}
+
+{# ---------------- Status banner ---------------- #}
+{% if contract.is_signed %}
+  <div class="alert alert--success contract-banner" role="status">
+    {% icon "check-circle" %}
+    <div class="alert__body">
+      <p class="alert__title">{% trans "Contract Signed Successfully" %}</p>
+      <p>{% trans "Your contract has been digitally signed. You can now access your company dashboard." %}</p>
+    </div>
+    <a class="btn btn--sm" href="{% url 'company_dashboard' %}">
+      {% icon "grid" %}{% trans "Go to dashboard" %}
+    </a>
+  </div>
+{% elif contract.status == "expired" %}
+  <div class="alert alert--warning contract-banner" role="alert">
+    {% icon "alert" %}
+    <div class="alert__body">
+      <p class="alert__title">{% trans "This version has been superseded" %}</p>
+      <p>{% trans "A newer version of the agreement is now in force. Open the current contract to sign it." %}</p>
+    </div>
+    <a class="btn btn--sm" href="{% url 'company_contract' %}">{% trans "Current contract" %}</a>
+  </div>
+{% else %}
+  <div class="alert alert--warning contract-banner" role="alert">
+    {% icon "alert" %}
+    <div class="alert__body">
+      <p class="alert__title">{% trans "Contract Signature Required" %}</p>
+      <p>{% trans "Please review and sign the contract before accessing your company dashboard." %}</p>
+    </div>
+  </div>
+{% endif %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ contract.title }}</h1>
+    <p>
+      {% blocktrans with reference=contract.reference version=contract.version %}Contract {{ reference }} · version {{ version }}{% endblocktrans %}
+    </p>
+  </div>
+  <div class="page-head__actions">
+    <span class="badge badge--{{ contract.tone }} badge--lg">
+      {% if contract.is_signed %}{% icon "check-circle" %}{% else %}{% icon "clock" %}{% endif %}
+      {{ contract.get_status_display }}
+    </span>
+  </div>
+</div>
+
+{# ---------------- Metadata ---------------- #}
+<div class="contract-meta">
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Contract number" %}</p>
+    <p class="contract-meta__value mono">{{ contract.reference }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Version" %}</p>
+    <p class="contract-meta__value">v{{ contract.version }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Created" %}</p>
+    <p class="contract-meta__value">{{ contract.created_at|date:"F j, Y" }}</p>
+  </div>
+  <div class="contract-meta__item">
+    <p class="contract-meta__label">{% trans "Status" %}</p>
+    <p class="contract-meta__value">
+      <span class="badge badge--{{ contract.tone }}">{{ contract.get_status_display }}</span>
+    </p>
+  </div>
+</div>
+
+<div class="contract-layout">
+  <div class="contract-layout__main">
+    {# ---------------- Parties ---------------- #}
+    <section class="card contract-parties">
+      <h2 class="card__title">{% trans "Parties to this agreement" %}</h2>
+      <div class="contract-parties__grid">
+        <div>
+          <p class="contract-parties__role">{% trans "The Platform" %}</p>
+          <p class="contract-parties__name">Vantage Rentals</p>
+          <p class="contract-parties__line">{% trans "Tirana, Albania" %}</p>
+          <p class="contract-parties__line">info@carrental.com</p>
+        </div>
+        <div>
+          <p class="contract-parties__role">{% trans "The Partner" %}</p>
+          <p class="contract-parties__name">{{ company.registered_name }}</p>
+          {% if company.legal_name and company.legal_name != company.name %}
+            <p class="contract-parties__line">{% trans "Trading as" %} {{ company.name }}</p>
+          {% endif %}
+          <p class="contract-parties__line">{{ company.email }}</p>
+          {% if company.address or company.city %}
+            <p class="contract-parties__line">
+              {{ company.address }}{% if company.address and company.city %}, {% endif %}{{ company.city }}{% if company.state %}, {{ company.state }}{% endif %}
+            </p>
+          {% endif %}
+          {% if company.tin %}
+            <p class="contract-parties__line">{% trans "TIN" %}: {{ company.tin }}</p>
+          {% endif %}
+          {% if company.tax_number %}
+            <p class="contract-parties__line">{% trans "Tax number" %}: {{ company.tax_number }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {# ---------------- The agreement ---------------- #}
+    <section class="card contract-document" aria-label="{% trans 'Contract text' %}">
+      <div class="contract-document__head">
+        <h2 class="card__title">{% trans "Terms and conditions" %}</h2>
+        <p class="tiny muted">{% trans "Scroll to read the complete agreement." %}</p>
+      </div>
+
+      <div class="contract-document__scroll" tabindex="0" data-contract-scroll>
+        {% for section in sections %}
+          {% if section.heading %}<h3 class="contract-document__heading">{{ section.heading }}</h3>{% endif %}
+          {% for paragraph in section.paragraphs %}
+            <p class="contract-document__paragraph">{{ paragraph }}</p>
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <p class="contract-document__fingerprint">
+        {% trans "Document fingerprint (SHA-256)" %}:
+        <span class="mono">{{ contract.content_hash }}</span>
+      </p>
+    </section>
+
+    {# ---------------- Signature ---------------- #}
+    {% if contract.is_signed %}
+      <section class="card contract-signature contract-signature--done">
+        <h2 class="card__title">{% icon "signature" %}{% trans "Digital signature" %}</h2>
+
+        <div class="contract-record">
+          <div><span>{% trans "Signed by" %}</span><strong>{{ contract.signer_name }}</strong></div>
+          <div><span>{% trans "Email" %}</span><strong>{{ contract.signer_email }}</strong></div>
+          <div><span>{% trans "Signature" %}</span><strong class="signature-mark">{{ contract.signature_name }}</strong></div>
+          <div><span>{% trans "Signed on" %}</span><strong>{{ contract.signed_at|date:"F j, Y H:i" }}</strong></div>
+          <div><span>{% trans "Contract version" %}</span><strong>v{{ contract.version }}</strong></div>
+          {% if contract.signature_ip %}
+            <div><span>{% trans "IP address" %}</span><strong class="mono">{{ contract.signature_ip }}</strong></div>
+          {% endif %}
+          {% if contract.signature_user_agent %}
+            <div class="contract-record--wide"><span>{% trans "Device" %}</span><strong>{{ contract.signature_user_agent|truncatechars:110 }}</strong></div>
+          {% endif %}
+          <div class="contract-record--wide">
+            <span>{% trans "Signature fingerprint" %}</span>
+            <strong class="mono">{{ contract.signature_hash }}</strong>
+          </div>
+        </div>
+
+        <p class="tiny muted mt-3">
+          {% trans "This record is immutable. Neither the signed text nor the signature can be changed — a change of terms is issued as a new version." %}
+        </p>
+      </section>
+
+    {% elif is_archive_view or contract.status == "expired" %}
+      <section class="card">
+        <p class="muted">{% trans "This version is no longer open for signature." %}</p>
+      </section>
+
+    {% elif is_read_only_view %}
+      <section class="card">
+        <p class="muted">
+          {% trans "This company has not signed yet. A contract can only be signed by the company itself — the platform cannot sign on its behalf." %}
+        </p>
+      </section>
+
+    {% else %}
+      <section class="card contract-signature">
+        <h2 class="card__title">{% icon "signature" %}{% trans "Digital signature" %}</h2>
+        <p class="muted">
+          {% trans "Type your full name to sign electronically. This has the same legal effect as a handwritten signature." %}
+        </p>
+
+        <form method="post" action="{% url 'company_contract_sign' %}" class="contract-sign"
+              data-contract-sign data-loading-form
+              data-confirm="{% trans 'Sign this contract on behalf of your company? This cannot be undone.' %}">
+          {% csrf_token %}
+
+          <div class="field">
+            <label class="field__label" for="signature_name">
+              {% trans "Full name of the signing representative" %}<span class="req" aria-hidden="true">*</span>
+            </label>
+            <div class="field__control">
+              {% icon "user" %}
+              <input class="field__input signature-input" type="text" id="signature_name"
+                     name="signature_name" value="{{ signer_default }}" autocomplete="name"
+                     minlength="3" maxlength="150" required data-signature-input>
+            </div>
+            <p class="field__hint">{% trans "Your typed name is stored as the signature, alongside the date, your account and this document's fingerprint." %}</p>
+          </div>
+
+          <label class="check">
+            <input type="checkbox" name="accept_terms" value="on" required data-signature-agree>
+            <span class="check__text">
+              <strong>{% trans "I have read and agree to the contract above." %}</strong>
+              <span>{% trans "I confirm I am authorised to enter into this agreement on behalf of the company." %}</span>
+            </span>
+          </label>
+
+          <div class="contract-sign__actions">
+            <button type="submit" class="btn btn--primary btn--lg" data-signature-submit disabled>
+              {% icon "signature" %}{% trans "Sign Contract" %}
+            </button>
+            <p class="tiny muted" data-signature-hint>
+              {% trans "Tick the box and enter your name to enable signing." %}
+            </p>
+          </div>
+        </form>
+      </section>
+    {% endif %}
+  </div>
+
+  {# ---------------- Aside ---------------- #}
+  <aside class="contract-layout__side">
+    <section class="card">
+      <h2 class="card__title">{% trans "What happens next" %}</h2>
+      <ol class="contract-steps">
+        <li class="{% if contract.first_viewed_at %}is-done{% endif %}">
+          {% trans "Read the full agreement" %}
+        </li>
+        <li class="{% if contract.is_signed %}is-done{% endif %}">
+          {% trans "Sign it electronically" %}
+        </li>
+        <li class="{% if contract.is_signed %}is-done{% endif %}">
+          {% trans "Your company panel unlocks" %}
+        </li>
+        <li class="{% if company.is_active %}is-done{% endif %}">
+          {% trans "The platform team approves your listing" %}
+        </li>
+      </ol>
+      {% if contract.is_signed and not company.is_active %}
+        <p class="tiny muted mt-3">
+          {% trans "Your panel is open. Your vehicles become visible on the public site once the platform team approves the company." %}
+        </p>
+      {% endif %}
+    </section>
+
+    {% if history %}
+      <section class="card">
+        <h2 class="card__title">{% trans "Contract history" %}</h2>
+        <ul class="contract-history">
+          {% for item in history %}
+            <li>
+              <a href="{% url 'company_contract_detail' item.id %}">
+                <span class="contract-history__version">v{{ item.version }}</span>
+                <span class="badge badge--{{ item.tone }}">{{ item.get_status_display }}</span>
+                <span class="contract-history__date">
+                  {% if item.signed_at %}{{ item.signed_at|date:"M j, Y" }}{% else %}{{ item.created_at|date:"M j, Y" }}{% endif %}
+                </span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

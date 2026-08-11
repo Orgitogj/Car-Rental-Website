@@ -1,0 +1,238 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "Functionalities" %} · Vantage Rentals{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/functionalities.css' %}">{% endblock %}
+
+{% block content %}
+
+{# ================= Hero ================= #}
+<section class="fx-hero">
+  <div class="fx-wrap">
+    <div class="fx-hero__left">
+      <span class="fx-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        </svg>
+        {% trans "For rent-a-car companies" %}
+      </span>
+
+      <h1>{% trans "Manage your business in a single panel" %}</h1>
+
+      <p class="fx-hero__desc">
+        {% trans "Vantage Rentals helps you manage vehicles, reservations, clients, and daily operations in a simple and organized way." %}
+      </p>
+
+      <div class="fx-hero__actions">
+        <a class="btn btn--primary btn--lg" href="{% url 'contact' %}?subject={{ enquiry_subject|urlencode }}">
+          {% trans "Register your company" %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+            <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a class="btn btn--lg" href="{% url 'how_it_works' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          {% trans "See how it works" %}
+        </a>
+      </div>
+    </div>
+
+    {# A sketch of the company console, drawn from live platform figures. #}
+    <div class="fx-hero__right">
+      <div class="fx-preview">
+        <div class="fx-preview__bar">
+          <span class="fx-preview__dot"></span>
+          <span class="fx-preview__dot"></span>
+          <span class="fx-preview__dot"></span>
+          <span class="fx-preview__title">{% trans "Company panel" %}</span>
+        </div>
+        <div class="fx-preview__body">
+          <div class="fx-preview__kpis">
+            <div class="fx-kpi">
+              <p class="fx-kpi__label">{% trans "Vehicles" %}</p>
+              <p class="fx-kpi__value" data-count="{{ stats.vehicles }}">0</p>
+            </div>
+            <div class="fx-kpi">
+              <p class="fx-kpi__label">{% trans "Available now" %}</p>
+              <p class="fx-kpi__value" data-count="{{ stats.available }}">0</p>
+            </div>
+            <div class="fx-kpi">
+              <p class="fx-kpi__label">{% trans "Reservations" %}</p>
+              <p class="fx-kpi__value" data-count="{{ stats.bookings }}">0</p>
+            </div>
+            <div class="fx-kpi">
+              <p class="fx-kpi__label">{% trans "Partners" %}</p>
+              <p class="fx-kpi__value" data-count="{{ stats.companies }}">0</p>
+            </div>
+          </div>
+          <div class="fx-preview__chart" aria-hidden="true">
+            <i style="height:38%"></i><i style="height:52%"></i><i style="height:44%"></i>
+            <i style="height:66%"></i><i style="height:58%"></i><i style="height:74%"></i>
+            <i style="height:62%"></i><i style="height:82%"></i><i style="height:70%"></i>
+            <i style="height:92%"></i><i style="height:78%"></i><i style="height:100%"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ================= Features ================= #}
+<section class="fx-features">
+  <div class="fx-wrap">
+    <h2>{% trans "What will you find in the panel?" %}</h2>
+
+    <div class="fx-features__grid">
+      <div class="fx-card">
+        <span class="fx-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="4" height="18" rx="1"/>
+            <rect x="10" y="8" width="4" height="13" rx="1"/>
+            <rect x="17" y="5" width="4" height="16" rx="1"/>
+          </svg>
+        </span>
+        <div class="fx-card__text">
+          <h3>{% trans "Main Dashboard" %}</h3>
+          <p>{% trans "View total vehicles, available vehicles, active reservations, and monthly revenue at a glance." %}</p>
+        </div>
+      </div>
+
+      <div class="fx-card">
+        <span class="fx-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="5" y="2" width="14" height="20" rx="2"/>
+            <line x1="9" y1="7" x2="15" y2="7"/>
+            <line x1="9" y1="11" x2="15" y2="11"/>
+            <line x1="9" y1="15" x2="13" y2="15"/>
+          </svg>
+        </span>
+        <div class="fx-card__text">
+          <h3>{% trans "Reservations" %}</h3>
+          <p>{% trans "Track reservations by status, client, pickup date, and return date with ease." %}</p>
+        </div>
+      </div>
+
+      <div class="fx-card">
+        <span class="fx-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22.875 8.625L21.75 9L21 10.5L19.1776 4.4253C18.9238 3.57933 18.1452 3 17.2619 3H6.73806C5.85484 3 5.0762 3.57934 4.82241 4.4253L3 10.5L2.25 9L1.125 8.625"/>
+            <path d="M1.5 19.468V21C1.5 21.3978 1.65804 21.7794 1.93934 22.0607C2.22064 22.342 2.60218 22.5 3 22.5C3.39782 22.5 3.77936 22.342 4.06066 22.0607C4.34196 21.7794 4.5 21.3978 4.5 21V19.555"/>
+            <path d="M22.5 19.468V21C22.5 21.3978 22.342 21.7794 22.0607 22.0607C21.7794 22.342 21.3978 22.5 21 22.5C20.6022 22.5 20.2206 22.342 19.9393 22.0607C19.658 21.7794 19.5 21.3978 19.5 21V19.5766"/>
+            <path d="M2.75 10.5H12H21.25C21.7804 10.5 22.2891 10.7299 22.6642 11.139C23.0393 11.5482 23.25 12.1032 23.25 12.6818V18.4091C23.25 18.6984 23.1446 18.9759 22.9571 19.1805C22.7696 19.3851 22.5152 19.5 22.25 19.5H1.75C1.48478 19.5 1.23043 19.3851 1.04289 19.1805C0.855357 18.9759 0.75 18.6984 0.75 18.4091V12.6818C0.75 12.1032 0.960714 11.5482 1.33579 11.139C1.71086 10.7299 2.21957 10.5 2.75 10.5Z"/>
+            <path d="M0.75 14.25H5L6.125 16.5"/>
+            <path d="M14.25 16.5H9.75"/>
+            <path d="M23.25 14.25H19L17.875 16.5"/>
+          </svg>
+        </span>
+        <div class="fx-card__text">
+          <h3>{% trans "Vehicles" %}</h3>
+          <p>{% trans "Keep full control of your fleet list, availability, archiving, and vehicle status." %}</p>
+        </div>
+      </div>
+
+      <div class="fx-card">
+        <span class="fx-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>
+            <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>
+            <path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>
+          </svg>
+        </span>
+        <div class="fx-card__text">
+          <h3>{% trans "Calendar" %}</h3>
+          <p>{% trans "Better organize pickups, returns, and daily reservation planning in one calendar view." %}</p>
+        </div>
+      </div>
+
+      <div class="fx-card">
+        <span class="fx-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <path d="M16 3.128a4 4 0 0 1 0 7.744"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <circle cx="9" cy="7" r="4"/>
+          </svg>
+        </span>
+        <div class="fx-card__text">
+          <h3>{% trans "Operators" %}</h3>
+          <p>{% trans "Manage your company operators and control their access levels within the panel." %}</p>
+        </div>
+      </div>
+
+      <div class="fx-card">
+        <span class="fx-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </span>
+        <div class="fx-card__text">
+          <h3>{% trans "Settings & Payments" %}</h3>
+          <p>{% trans "Update your business settings and keep track of all payments linked to your activity." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ================= Benefits ================= #}
+<section class="fx-benefits">
+  <div class="fx-wrap">
+    <div class="fx-benefits__grid">
+      <div class="fx-benefit">
+        <span class="fx-benefit__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+          </svg>
+        </span>
+        <div>
+          <h4>{% trans "Less manual work" %}</h4>
+          <p>{% trans "Automate your processes and save time every day." %}</p>
+        </div>
+      </div>
+
+      <div class="fx-benefit">
+        <span class="fx-benefit__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="5" y="2" width="14" height="20" rx="2"/>
+            <path d="M9 7h6"/><path d="M9 11h6"/><path d="M9 15h4"/><path d="M15 15l2 2 4-4"/>
+          </svg>
+        </span>
+        <div>
+          <h4>{% trans "Everything organized" %}</h4>
+          <p>{% trans "All your business data in one single place." %}</p>
+        </div>
+      </div>
+
+      <div class="fx-benefit">
+        <span class="fx-benefit__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </span>
+        <div>
+          <h4>{% trans "Clear business overview" %}</h4>
+          <p>{% trans "Make faster decisions with accurate, real-time data." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

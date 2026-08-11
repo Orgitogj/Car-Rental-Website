@@ -1,0 +1,164 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Platform dashboard" %}{% endblock %}
+{% block page_title %}{% trans "Platform overview" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Platform overview" %}</h1>
+    <p>{% blocktrans with n=m.period_days %}How every company on the platform has performed over the last {{ n }} days.{% endblocktrans %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'superadmin_reports' %}">{% icon "download" %}{% trans "Reports" %}</a>
+    <a class="btn btn--primary" href="{% url 'superadmin_company_create' %}">
+      {% icon "plus" %}{% trans "Add company" %}
+    </a>
+  </div>
+</div>
+
+<div class="grid grid--kpi">
+  {% include "components/kpi.html" with label=_("Platform revenue") metric=m.revenue_period icon_name="trend" money=True %}
+  {% include "components/kpi.html" with label=_("Bookings") metric=m.bookings_period icon_name="calendar" %}
+  {% include "components/kpi.html" with label=_("Companies") metric=m.companies_total icon_name="building" hint=_("Registered on the platform") %}
+  {% include "components/kpi.html" with label=_("New companies") metric=m.companies_new icon_name="user-plus" %}
+</div>
+
+<div class="grid grid--kpi mt-4">
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "Active companies" %}</p>
+      <span class="kpi__icon">{% icon "check-circle" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.companies_active.value }}">0</span></p>
+    <div class="kpi__foot">
+      {% if m.companies_suspended %}
+        <span class="kpi__delta kpi__delta--down">{{ m.companies_suspended }} {% trans "suspended" %}</span>
+      {% else %}
+        <span>{% trans "None suspended" %}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "Total fleet" %}</p>
+      <span class="kpi__icon">{% icon "car" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.fleet_total.value }}">0</span></p>
+    <div class="kpi__foot"><span>{{ m.fleet_active }} {% trans "listed publicly" %}</span></div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "On the road now" %}</p>
+      <span class="kpi__icon">{% icon "bolt" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.active_rentals }}">0</span></p>
+    <div class="meter mt-2">
+      <div class="meter__track"><div class="meter__fill" style="width: {{ m.utilisation }}%"></div></div>
+    </div>
+    <div class="kpi__foot"><span>{{ m.utilisation }}% {% trans "utilisation" %}</span></div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi__head">
+      <p class="kpi__label">{% trans "Customers" %}</p>
+      <span class="kpi__icon">{% icon "users" %}</span>
+    </div>
+    <p class="kpi__value"><span data-count="{{ m.customers_total }}">0</span></p>
+    <div class="kpi__foot"><span>{{ m.users_total }} {% trans "registered accounts" %}</span></div>
+  </div>
+</div>
+
+<div class="panel-grid mt-6">
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <p class="card__title">{% trans "Platform revenue" %}</p>
+        <p class="card__subtitle">{% blocktrans with n=m.period_days %}Confirmed revenue, last {{ n }} days{% endblocktrans %}</p>
+      </div>
+      <p class="strong">{% money m.revenue_period.value %}</p>
+    </div>
+    <div class="card__body">
+      <div class="chart" data-chart="area" data-currency="{{ CURRENCY }}"
+           data-label="{% trans 'Daily platform revenue' %}"
+           data-series="{{ revenue_series|to_json }}"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <p class="card__title">{% trans "Top companies" %}</p>
+      <a class="link small" href="{% url 'superadmin_companies' %}">{% trans "All" %}</a>
+    </div>
+    <div class="card__body--flush">
+      {% for company in top_companies %}
+        <div class="list-item">
+          <span class="avatar avatar--sm">
+            {% if company.logo_url %}
+              <img src="{{ company.logo_url }}" alt="" width="30" height="30">
+            {% else %}{{ company.initials }}{% endif %}
+          </span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ company.name }}</span>
+            <span class="list-item__meta">
+              {{ company.fleet_count }} {% trans "vehicles" %} · {{ company.booking_count }} {% trans "bookings" %}
+            </span>
+          </span>
+          <span class="list-item__side"><strong>{% money company.revenue %}</strong></span>
+        </div>
+      {% empty %}
+        {% empty_state title=_("No revenue yet") text=_("Once companies start confirming bookings, your best performers appear here.") icon_name="trend" compact=True %}
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<div class="grid grid--2 mt-6">
+  <section class="card">
+    <div class="card__head">
+      <p class="card__title">{% trans "Latest bookings" %}</p>
+      <a class="link small" href="{% url 'superadmin_bookings' %}">{% trans "All" %}</a>
+    </div>
+    <div class="card__body--flush">
+      {% for booking in recent_bookings %}
+        <div class="list-item">
+          <span class="badge badge--{{ booking.status_tone }}">{{ booking.get_status_display }}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ booking.car.title }}</span>
+            <span class="list-item__meta">{{ booking.company.name }} · {{ booking.full_name }}</span>
+          </span>
+          <span class="list-item__side">
+            <strong>{% money booking.total_price %}</strong><br>{{ booking.created_at|date:"j M" }}
+          </span>
+        </div>
+      {% empty %}
+        {% empty_state title=_("No bookings yet") text=_("Bookings from every company show up here as they come in.") icon_name="calendar" compact=True %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <p class="card__title">{% trans "Recent activity" %}</p>
+      <a class="link small" href="{% url 'superadmin_activity' %}">{% trans "Full log" %}</a>
+    </div>
+    <div class="card__body--flush">
+      {% for entry in recent_activity %}
+        <div class="list-item">
+          <span class="badge badge--{{ entry.tone }}">{{ entry.get_action_display }}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ entry.description|default:entry.get_action_display }}</span>
+            <span class="list-item__meta">{{ entry.actor_label }}{% if entry.company %} · {{ entry.company.name }}{% endif %}</span>
+          </span>
+          <span class="list-item__side">{{ entry.created_at|timesince }}</span>
+        </div>
+      {% empty %}
+        {% empty_state title=_("Nothing logged yet") text=_("Administrative actions are recorded here as they happen.") icon_name="shield" compact=True %}
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

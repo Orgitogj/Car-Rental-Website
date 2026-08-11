@@ -1,0 +1,187 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{% trans "Bookings" %}{% endblock %}
+{% block page_title %}{% trans "Bookings" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Bookings" %}</h1>
+    <p>{% trans "Every reservation for your fleet, newest first." %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'company_report_export' 'bookings' %}?{{ request.GET.urlencode }}">
+      {% icon "download" %}{% trans "Export Excel" %}
+    </a>
+  </div>
+</div>
+
+{# ---- status tabs ---- #}
+<div class="btn-group mb-4" role="group" aria-label="{% trans 'Filter by status' %}">
+  <a class="btn-group__item {% if not status %}is-active{% endif %}" href="?{% query_replace status='' page='' %}">
+    {% trans "All" %} <span class="muted">{{ counts.all }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'pending' %}is-active{% endif %}" href="?{% query_replace status='pending' page='' %}">
+    {% trans "Pending" %} <span class="muted">{{ counts.pending }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'confirmed' %}is-active{% endif %}" href="?{% query_replace status='confirmed' page='' %}">
+    {% trans "Confirmed" %} <span class="muted">{{ counts.confirmed }}</span>
+  </a>
+  <a class="btn-group__item {% if status == 'cancelled' %}is-active{% endif %}" href="?{% query_replace status='cancelled' page='' %}">
+    {% trans "Cancelled" %} <span class="muted">{{ counts.cancelled }}</span>
+  </a>
+</div>
+
+{# ---- search / filters ---- #}
+<form class="toolbar" method="get">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <div class="toolbar__search">
+    {% icon "search" %}
+    <input class="field__input" type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Reference, name, email or vehicle…' %}"
+           aria-label="{% trans 'Search bookings' %}">
+  </div>
+  <div class="toolbar__filters">
+    <input class="field__input" type="date" name="from" value="{{ date_from }}" aria-label="{% trans 'From' %}">
+    <input class="field__input" type="date" name="to" value="{{ date_to }}" aria-label="{% trans 'To' %}">
+    <button type="submit" class="btn btn--sm">{% icon "filter" %}{% trans "Apply" %}</button>
+    {% if query or date_from or date_to %}
+      <a class="btn btn--ghost btn--sm" href="{% url 'company_bookings' %}">{% trans "Clear" %}</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if bookings %}
+  <form method="post" action="{% url 'company_bookings_bulk' %}" data-bulk-form>
+    {% csrf_token %}
+
+    <div class="bulk-bar" data-bulk-bar hidden>
+      <span><b data-bulk-count>0</b> {% trans "selected" %}</span>
+      {% if can_manage_company %}
+        <button type="submit" name="action" value="confirm" class="btn btn--success-soft btn--sm">
+          {% icon "check" %}{% trans "Confirm" %}
+        </button>
+        <button type="submit" name="action" value="cancel" class="btn btn--danger-soft btn--sm"
+                data-confirm="{% trans 'Cancel the selected bookings?' %}">
+          {% icon "x" %}{% trans "Cancel" %}
+        </button>
+      {% else %}
+        {% restricted_action label=_("Confirm") icon_name="check" variant="btn--success-soft" size="btn--sm" %}
+        {% restricted_action label=_("Cancel") icon_name="x" variant="btn--danger-soft" size="btn--sm" %}
+      {% endif %}
+    </div>
+
+    <div class="table-wrap table-wrap--responsive">
+      <table class="table table--responsive">
+        <thead>
+          <tr>
+            <th class="table__check">
+              <input type="checkbox" class="field__checkbox" data-bulk-all
+                     aria-label="{% trans 'Select all' %}">
+            </th>
+            <th>{% trans "Reference" %}</th>
+            <th>{% trans "Vehicle" %}</th>
+            <th>{% trans "Customer" %}</th>
+            <th>{% trans "Dates" %}</th>
+            <th class="table__num">{% trans "Total" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th class="table__actions">{% trans "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in bookings %}
+            <tr>
+              <td data-label="" class="table__check">
+                {% if booking.status == "pending" %}
+                  <input type="checkbox" class="field__checkbox" name="booking_ids"
+                         value="{{ booking.id }}" data-bulk-item
+                         aria-label="{% blocktrans with ref=booking.reference %}Select {{ ref }}{% endblocktrans %}">
+                {% endif %}
+              </td>
+
+              <td data-label="{% trans 'Reference' %}">
+                <span class="mono strong">{{ booking.reference }}</span>
+                <span class="table__secondary">{{ booking.created_at|date:"j M Y" }}</span>
+              </td>
+
+              <td data-label="{% trans 'Vehicle' %}">
+                <span class="table__cell-stack">
+                  <span class="table__primary">{{ booking.car.title }}</span>
+                  <span class="table__secondary">{{ booking.car.get_car_type_display }}</span>
+                </span>
+              </td>
+
+              <td data-label="{% trans 'Customer' %}">
+                <span class="table__cell-stack">
+                  <span class="table__primary">{{ booking.full_name }}</span>
+                  <span class="table__secondary">{{ booking.email }}</span>
+                </span>
+              </td>
+
+              <td data-label="{% trans 'Dates' %}">
+                <span class="table__cell-stack">
+                  <span>{{ booking.start_date|date:"j M" }} → {{ booking.end_date|date:"j M Y" }}</span>
+                  <span class="table__secondary">{% blocktrans count n=booking.days %}{{ n }} day{% plural %}{{ n }} days{% endblocktrans %}</span>
+                </span>
+              </td>
+
+              <td data-label="{% trans 'Total' %}" class="table__num">
+                <strong>{% money booking.total_price %}</strong>
+                {% if booking.extras_total > 0 %}
+                  <span class="table__secondary">{% trans "incl." %} {% money booking.extras_total %} {% trans "extras" %}</span>
+                {% endif %}
+              </td>
+
+              <td data-label="{% trans 'Status' %}">
+                <span class="badge badge--{{ booking.status_tone }}">
+                  <span class="dot{% if booking.is_out_on_road %} dot--pulse{% endif %}"></span>
+                  {{ booking.get_status_display }}
+                </span>
+              </td>
+
+              <td data-label="" class="table__actions">
+                <div class="row row--tight">
+                  {% if booking.status == "pending" %}
+                    {% if can_manage_company %}
+                      <form method="post" action="{% url 'company_booking_confirm' booking.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn--success-soft btn--sm">{% trans "Confirm" %}</button>
+                      </form>
+                    {% else %}
+                      {% restricted_action label=_("Confirm") variant="btn--success-soft" size="btn--sm" %}
+                    {% endif %}
+                  {% endif %}
+                  {% if booking.is_cancellable %}
+                    {% if can_manage_company %}
+                      <form method="post" action="{% url 'company_booking_cancel' booking.id %}"
+                            data-confirm="{% blocktrans with ref=booking.reference %}Cancel booking {{ ref }}?{% endblocktrans %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn--danger-soft btn--sm">{% trans "Cancel" %}</button>
+                      </form>
+                    {% else %}
+                      {% restricted_action label=_("Cancel") variant="btn--danger-soft" size="btn--sm" %}
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% if query or status or date_from %}
+      {% url 'company_bookings' as clear_url %}
+      {% empty_state title=_("No bookings match those filters") text=_("Try a different status, a wider date range, or clear the search.") icon_name="search" action_url=clear_url action_label=_("Clear filters") %}
+    {% else %}
+      {% empty_state title=_("No bookings yet") text=_("When customers reserve one of your vehicles, their requests land here for you to confirm.") icon_name="calendar" %}
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

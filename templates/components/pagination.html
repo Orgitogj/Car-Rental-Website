@@ -1,0 +1,35 @@
+{% load i18n ui %}
+{% if page_obj.paginator.num_pages > 1 %}
+  <nav class="pagination" aria-label="{% trans 'Pagination' %}">
+    <p class="pagination__info">
+      {% blocktrans trimmed with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
+        Showing {{ start }}–{{ end }} of {{ total }}
+      {% endblocktrans %}
+    </p>
+
+    <div class="pagination__pages">
+      <a class="pagination__link"
+         {% if page_obj.has_previous %}href="?{% query_replace page=page_obj.previous_page_number %}"{% else %}aria-disabled="true"{% endif %}
+         aria-label="{% trans 'Previous page' %}">
+        {% icon "chevron-left" %}
+      </a>
+
+      {% page_window page_obj as numbers %}
+      {% for number in numbers %}
+        {% if number is None %}
+          <span class="pagination__gap" aria-hidden="true">…</span>
+        {% elif number == page_obj.number %}
+          <a class="pagination__link" aria-current="page" href="?{% query_replace page=number %}">{{ number }}</a>
+        {% else %}
+          <a class="pagination__link" href="?{% query_replace page=number %}">{{ number }}</a>
+        {% endif %}
+      {% endfor %}
+
+      <a class="pagination__link"
+         {% if page_obj.has_next %}href="?{% query_replace page=page_obj.next_page_number %}"{% else %}aria-disabled="true"{% endif %}
+         aria-label="{% trans 'Next page' %}">
+        {% icon "chevron-right" %}
+      </a>
+    </div>
+  </nav>
+{% endif %}

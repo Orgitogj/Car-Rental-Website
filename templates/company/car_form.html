@@ -1,0 +1,128 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{% if mode == "edit" %}{% trans "Edit vehicle" %}{% else %}{% trans "Add vehicle" %}{% endif %}{% endblock %}
+{% block page_title %}{% trans "Fleet" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <nav class="row row--tight small muted mb-2">
+      <a class="link" href="{% url 'company_fleet' %}">{% trans "Fleet" %}</a>
+      {% icon "chevron-right" %}
+      <span>{% if mode == "edit" %}{{ car.title }}{% else %}{% trans "New vehicle" %}{% endif %}</span>
+    </nav>
+    <h1>{% if mode == "edit" %}{% trans "Edit vehicle" %}{% else %}{% trans "Add a vehicle" %}{% endif %}</h1>
+    <p>{% trans "Details shown here appear on the public listing." %}</p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 340px;gap:var(--space-6);align-items:start">
+  <form method="post" enctype="multipart/form-data" class="card" data-loading-form novalidate>
+    {% csrf_token %}
+    <div class="card__body">
+      {% if form.non_field_errors %}
+        <div class="form-error mb-6" role="alert">
+          {% icon "alert" %}<span>{{ form.non_field_errors.0 }}</span>
+        </div>
+      {% endif %}
+
+      <fieldset class="form-section">
+        <legend class="form-section__legend">{% trans "Identity" %}</legend>
+        <p class="form-section__hint">{% trans "How the vehicle appears in search results." %}</p>
+        <div class="field-grid">
+          {% field form.brand %}
+          {% field form.name %}
+          {% field form.car_type %}
+          {% field form.year %}
+          {% field form.description wide=True %}
+        </div>
+      </fieldset>
+
+      <fieldset class="form-section">
+        <legend class="form-section__legend">{% trans "Specification" %}</legend>
+        <div class="field-grid">
+          {% field form.seats %}
+          {% field form.doors %}
+          {% field form.bags %}
+          {% field form.power %}
+          {% field form.engine_size %}
+          {% field form.fuel %}
+          {% field form.gear %}
+        </div>
+      </fieldset>
+
+      <fieldset class="form-section">
+        <legend class="form-section__legend">{% trans "Pricing & availability" %}</legend>
+        <div class="field-grid">
+          {% field form.price_per_day %}
+          {% field form.is_active %}
+        </div>
+      </fieldset>
+
+      <fieldset class="form-section">
+        <legend class="form-section__legend">{% trans "Photos" %}</legend>
+        <p class="form-section__hint">{% trans "Landscape images work best. The first one becomes the cover." %}</p>
+        {% field form.images wide=True %}
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary btn--lg">
+          {% icon "check" %}
+          {% if mode == "edit" %}{% trans "Save changes" %}{% else %}{% trans "Add vehicle" %}{% endif %}
+        </button>
+        <a class="btn btn--ghost" href="{% url 'company_fleet' %}">{% trans "Cancel" %}</a>
+      </div>
+    </div>
+  </form>
+
+  <aside class="stack">
+    {% if mode == "edit" and images %}
+      <div class="card">
+        <div class="card__head"><p class="card__title">{% trans "Current photos" %}</p></div>
+        <div class="card__body">
+          <div class="gallery__thumbs" style="grid-template-columns:repeat(auto-fill,minmax(90px,1fr))">
+            {% for image in images %}
+              <div style="position:relative">
+                <div class="gallery__thumb" aria-current="{{ image.is_main|yesno:'true,false' }}" style="cursor:default">
+                  <img src="{{ image.url }}" alt="" loading="lazy" width="120" height="90">
+                </div>
+                {% if image.is_main %}
+                  <span class="tag tag--brand" style="position:absolute;top:4px;left:4px">{% trans "Cover" %}</span>
+                {% endif %}
+                <div class="row row--tight mt-2">
+                  {% if not image.is_main %}
+                    <form method="post" action="{% url 'company_car_image_main' image.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn--ghost btn--sm" data-tip="{% trans 'Make cover' %}">
+                        {% icon "star" %}
+                      </button>
+                    </form>
+                  {% endif %}
+                  <form method="post" action="{% url 'company_car_image_delete' image.id %}"
+                        data-confirm="{% trans 'Remove this photo?' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn--ghost btn--sm" data-tip="{% trans 'Remove' %}">
+                      {% icon "trash" %}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card card--sunken">
+      <div class="card__body">
+        <p class="card__title">{% trans "Tips" %}</p>
+        <ul class="stack-sm small muted mt-3" style="list-style:disc;padding-left:1.1rem">
+          <li>{% trans "Photograph the car outdoors in daylight, three-quarter view." %}</li>
+          <li>{% trans "Set the daily rate inclusive of tax — customers see this total." %}</li>
+          <li>{% trans "Unlist a vehicle instead of deleting it if it is only temporarily off the road." %}</li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

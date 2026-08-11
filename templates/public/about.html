@@ -1,0 +1,90 @@
+{% extends "base/public.html" %}
+{% load static i18n ui %}
+{% block title %}{% trans "About us" %} · Vantage Rentals{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/home.css' %}">{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+  <div class="container page-banner__inner">
+    <p class="eyebrow">{% trans "About" %}</p>
+    <h1>{% trans "One marketplace, every local fleet" %}</h1>
+    <p class="lead">
+      {% trans "We bring independent rental companies together in one place so you can compare honestly and book in a minute." %}
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="stat-strip" data-reveal>
+      <div class="stat-strip__item">
+        <p class="stat-strip__value" data-count="{{ stats.vehicles }}">0</p>
+        <p class="stat-strip__label">{% trans "Vehicles listed" %}</p>
+      </div>
+      <div class="stat-strip__item">
+        <p class="stat-strip__value" data-count="{{ stats.companies }}">0</p>
+        <p class="stat-strip__label">{% trans "Rental partners" %}</p>
+      </div>
+      <div class="stat-strip__item">
+        <p class="stat-strip__value" data-count="{{ stats.bookings }}">0</p>
+        <p class="stat-strip__label">{% trans "Confirmed trips" %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--sunken">
+  <div class="container">
+    <div class="grid grid--2" style="align-items:center;gap:var(--space-12)">
+      <div class="prose" data-reveal>
+        <p class="eyebrow">{% trans "Why we built this" %}</p>
+        <h2>{% trans "Renting a car should not be the hardest part of the trip" %}</h2>
+        <p class="mt-4 muted">
+          {% trans "Comparing local rental companies used to mean a dozen phone calls, unclear pricing and vehicles that turned out to be unavailable. We wanted one place where availability is real, the total is visible before you commit, and confirmation arrives in minutes." %}
+        </p>
+        <p class="mt-4 muted">
+          {% trans "Every company on the platform is verified before its fleet goes live, and each one manages its own vehicles, pricing and bookings through a dedicated dashboard." %}
+        </p>
+        <a class="btn btn--primary mt-6" href="{% url 'cars' %}">
+          {% icon "search" %}{% trans "Browse vehicles" %}
+        </a>
+      </div>
+
+      <div class="grid" style="gap:var(--space-4)" data-reveal>
+        <div class="feature">
+          <span class="feature__icon">{% icon "shield" %}</span>
+          <h3>{% trans "Verified partners" %}</h3>
+          <p>{% trans "Companies are checked before listing and can be suspended instantly if standards slip." %}</p>
+        </div>
+        <div class="feature">
+          <span class="feature__icon">{% icon "tag" %}</span>
+          <h3>{% trans "Honest totals" %}</h3>
+          <p>{% trans "Every extra is priced per day and included in the total you see before confirming." %}</p>
+        </div>
+        <div class="feature">
+          <span class="feature__icon">{% icon "bolt" %}</span>
+          <h3>{% trans "Real availability" %}</h3>
+          <p>{% trans "Availability is checked against live bookings — twice, including at the moment you confirm." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="cta" data-reveal>
+      <h2>{% trans "Run a rental company?" %}</h2>
+      <p>{% trans "List your fleet, manage bookings and export your numbers from one dashboard." %}</p>
+      <div class="cta__actions">
+        <a class="btn btn--accent btn--lg" href="{% url 'contact' %}">
+          {% icon "mail" %}{% trans "Get in touch" %}
+        </a>
+        <a class="btn btn--glass btn--lg" href="{% url 'portal_login' %}">
+          {% icon "login" %}{% trans "Partner sign in" %}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

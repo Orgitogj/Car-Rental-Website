@@ -1,0 +1,91 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{% trans "Customers" %}{% endblock %}
+{% block page_title %}{% trans "Customers" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{% trans "Customers" %}</h1>
+    <p>{% trans "Everyone who has booked with you, and what they are worth." %}</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn" href="{% url 'company_report_export' 'customers' %}">
+      {% icon "download" %}{% trans "Export Excel" %}
+    </a>
+  </div>
+</div>
+
+<form class="toolbar" method="get">
+  <div class="toolbar__search">
+    {% icon "search" %}
+    <input class="field__input" type="search" name="q" value="{{ query }}"
+           placeholder="{% trans 'Name, email or phone…' %}" aria-label="{% trans 'Search customers' %}">
+  </div>
+  <button type="submit" class="btn btn--sm">{% trans "Search" %}</button>
+  {% if query %}<a class="btn btn--ghost btn--sm" href="{% url 'company_customers' %}">{% trans "Clear" %}</a>{% endif %}
+</form>
+
+{% if customers %}
+  <div class="table-wrap table-wrap--responsive">
+    <table class="table table--responsive">
+      <thead>
+        <tr>
+          <th>{% trans "Customer" %}</th>
+          <th>{% trans "Contact" %}</th>
+          <th class="table__num">{% trans "Bookings" %}</th>
+          <th class="table__num">{% trans "Confirmed" %}</th>
+          <th class="table__num">{% trans "Lifetime value" %}</th>
+          <th>{% trans "Last booking" %}</th>
+          <th class="table__actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in customers %}
+          <tr>
+            <td data-label="{% trans 'Customer' %}">
+              <span class="table__with-avatar">
+                <span class="avatar avatar--sm avatar--round">{{ customer.initials }}</span>
+                <span class="table__cell-stack">
+                  <span class="table__primary">{{ customer.full_name }}</span>
+                  <span class="table__secondary">{% trans "Since" %} {{ customer.first_booked_at|date:"M Y" }}</span>
+                </span>
+              </span>
+            </td>
+            <td data-label="{% trans 'Contact' %}">
+              <span class="table__cell-stack">
+                <a class="link small" href="mailto:{{ customer.email }}">{{ customer.email }}</a>
+                <span class="table__secondary">{{ customer.phone|default:"—" }}</span>
+              </span>
+            </td>
+            <td data-label="{% trans 'Bookings' %}" class="table__num">{{ customer.bookings_total }}</td>
+            <td data-label="{% trans 'Confirmed' %}" class="table__num">{{ customer.confirmed_total }}</td>
+            <td data-label="{% trans 'Lifetime value' %}" class="table__num">
+              <strong>{% money customer.spend_total %}</strong>
+            </td>
+            <td data-label="{% trans 'Last booking' %}">
+              {{ customer.last_booked_at|date:"j M Y"|default:"—" }}
+            </td>
+            <td data-label="" class="table__actions">
+              <a class="btn btn--ghost btn--sm" href="{% url 'company_customer_detail' customer.id %}">
+                {% trans "View" %}{% icon "arrow-right" %}
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% pagination page_obj %}
+{% else %}
+  <div class="card">
+    {% if query %}
+      {% url 'company_customers' as clear_url %}
+      {% empty_state title=_("No customers match") text=_("Try a different name, email or phone number.") icon_name="search" action_url=clear_url action_label=_("Clear search") %}
+    {% else %}
+      {% empty_state title=_("No customers yet") text=_("Customers are created automatically the first time someone books one of your vehicles.") icon_name="users" %}
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

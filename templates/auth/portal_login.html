@@ -1,0 +1,36 @@
+{% extends "base/auth.html" %}
+{% load i18n ui %}
+
+{% block title %}{% trans "Business portal" %}{% endblock %}
+{% block heading %}{% trans "Welcome" %}{% endblock %}
+{% block subheading %}{% trans "Log in with your account to continue." %}{% endblock %}
+
+{% block form %}
+<form method="post" class="auth-form" data-loading-form novalidate>
+  {% csrf_token %}
+  {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+
+  {% field form.username icon_name="mail" %}
+  {% field form.password icon_name="lock" toggle=True %}
+
+  <p class="auth-form__aside">
+    <a class="link" href="{% url 'contact' %}?topic=password">{% trans "Forgot password?" %}</a>
+  </p>
+
+  <button type="submit" class="btn btn--primary btn--lg btn--block">
+    {% trans "Login" %}{% icon "arrow-right" %}
+  </button>
+</form>
+{% endblock %}
+
+{% block foot %}
+  <p class="auth-divider"><span>{% trans "or" %}</span></p>
+  <p>
+    {% trans "Don't have an account?" %}
+    <a class="link link--strong" href="{% url 'portal_register' %}">{% trans "Register your company" %}</a>
+  </p>
+  <p class="mt-3 tiny">
+    {% trans "Customer looking for a booking?" %}
+    <a class="link" href="{% url 'booking_lookup' %}">{% trans "Find it here" %}</a>
+  </p>
+{% endblock %}

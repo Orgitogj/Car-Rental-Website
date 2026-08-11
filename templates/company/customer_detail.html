@@ -1,0 +1,75 @@
+{% extends "company/_base.html" %}
+{% load i18n ui %}
+{% block title %}{{ customer.full_name }}{% endblock %}
+{% block page_title %}{% trans "Customers" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <nav class="row row--tight small muted mb-2">
+      <a class="link" href="{% url 'company_customers' %}">{% trans "Customers" %}</a>
+      {% icon "chevron-right" %}
+      <span>{{ customer.full_name }}</span>
+    </nav>
+    <h1>{{ customer.full_name }}</h1>
+    <p>{% trans "Booking history and contact details." %}</p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:320px minmax(0,1fr);gap:var(--space-6);align-items:start">
+  <aside class="card">
+    <div class="card__body stack">
+      <div class="row">
+        <span class="avatar avatar--lg avatar--round">{{ customer.initials }}</span>
+        <span>
+          <strong>{{ customer.full_name }}</strong><br>
+          <span class="tiny muted">{% trans "Customer since" %} {{ customer.first_booked_at|date:"F Y" }}</span>
+        </span>
+      </div>
+
+      <div class="divider" style="margin:var(--space-2) 0"></div>
+
+      <div class="row row--tight small">
+        {% icon "mail" %}<a class="link" href="mailto:{{ customer.email }}">{{ customer.email }}</a>
+      </div>
+      {% if customer.phone %}
+        <div class="row row--tight small">
+          {% icon "phone" %}<a class="link" href="tel:{{ customer.phone }}">{{ customer.phone }}</a>
+        </div>
+      {% endif %}
+
+      <div class="summary mt-2">
+        <div class="summary__row">
+          <span>{% trans "Total bookings" %}</span><b>{{ bookings|length }}</b>
+        </div>
+        <div class="summary__total">
+          <span>{% trans "Lifetime value" %}</span><b>{% money lifetime_value %}</b>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="card">
+    <div class="card__head">
+      <p class="card__title">{% trans "Booking history" %}</p>
+    </div>
+    <div class="card__body--flush">
+      {% for booking in bookings %}
+        <div class="list-item">
+          <span class="badge badge--{{ booking.status_tone }}">{{ booking.get_status_display }}</span>
+          <span class="list-item__body">
+            <span class="list-item__title">{{ booking.car.title }}</span>
+            <span class="list-item__meta">
+              <span class="mono">{{ booking.reference }}</span> ·
+              {{ booking.start_date|date:"j M" }} → {{ booking.end_date|date:"j M Y" }}
+            </span>
+          </span>
+          <span class="list-item__side"><strong>{% money booking.total_price %}</strong></span>
+        </div>
+      {% empty %}
+        {% empty_state title=_("No bookings") text=_("This customer has no booking history yet.") icon_name="calendar" compact=True %}
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

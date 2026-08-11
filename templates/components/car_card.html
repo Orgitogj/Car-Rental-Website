@@ -1,0 +1,56 @@
+{% load i18n ui %}
+
+<article class="car-card">
+  <a class="car-card__media" href="{% url 'car_detail' car.id %}{% if query %}?{{ query }}{% endif %}"
+     aria-label="{{ car.title }}">
+    {% with image=car.main_image %}
+      {% if image %}
+        <img src="{{ image.url }}" alt="{{ car.title }}" loading="lazy" decoding="async"
+             width="480" height="300">
+      {% else %}
+        <span class="car-card__placeholder">{% icon "car" %}</span>
+      {% endif %}
+    {% endwith %}
+
+    <span class="car-card__tags">
+      <span class="tag tag--brand">{{ car.get_car_type_display }}</span>
+      {% if car.year >= 2023 %}<span class="tag tag--accent">{% trans "New" %}</span>{% endif %}
+    </span>
+
+    <span class="car-card__company">
+      <span class="avatar avatar--sm" aria-hidden="true">
+        {% if car.company.logo_url %}
+          <img src="{{ car.company.logo_url }}" alt="" loading="lazy" width="30" height="30">
+        {% else %}{{ car.company.initials }}{% endif %}
+      </span>
+      {{ car.company.name }}
+    </span>
+  </a>
+
+  <div class="car-card__body">
+    <div>
+      <h3 class="car-card__title">
+        <a href="{% url 'car_detail' car.id %}{% if query %}?{{ query }}{% endif %}">{{ car.title }}</a>
+      </h3>
+      <p class="car-card__meta">{{ car.year }} · {{ car.get_fuel_display }}</p>
+    </div>
+
+    <div class="car-card__specs">
+      <span class="car-card__spec">{% icon "seat" %}{% blocktrans count n=car.seats %}{{ n }} seat{% plural %}{{ n }} seats{% endblocktrans %}</span>
+      <span class="car-card__spec">{% icon "gear-shift" %}{{ car.get_gear_display }}</span>
+      <span class="car-card__spec">{% icon "bag" %}{{ car.bags }}</span>
+      <span class="car-card__spec">{% icon "bolt" %}{{ car.power }} HP</span>
+    </div>
+
+    <div class="car-card__foot">
+      <p class="car-card__price">
+        <b>{% money car.price_per_day %}</b>
+        <span>/ {% trans "day" %}</span>
+      </p>
+      <a class="btn btn--primary btn--sm" href="{% url 'car_detail' car.id %}{% if query %}?{{ query }}{% endif %}">
+        {% trans "View" %}
+        {% icon "arrow-right" %}
+      </a>
+    </div>
+  </div>
+</article>

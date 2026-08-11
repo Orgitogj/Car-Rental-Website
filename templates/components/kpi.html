@@ -1,0 +1,31 @@
+{% load i18n ui %}
+<div class="kpi">
+  <div class="kpi__head">
+    <p class="kpi__label">{{ label }}</p>
+    <span class="kpi__icon">{% icon icon_name %}</span>
+  </div>
+
+  <p class="kpi__value">
+    {% if money %}
+      <span data-count="{{ metric.value|floatformat:'2' }}"
+            data-count-decimals="2"
+            data-count-prefix="{{ CURRENCY }}">{% money metric.value %}</span>
+    {% else %}
+      <span data-count="{{ metric.value|default:0 }}">{{ metric.value|default:0 }}</span>{{ suffix|default:"" }}
+    {% endif %}
+  </p>
+
+  <div class="kpi__foot">
+    {% if metric.change is not None %}
+      <span class="kpi__delta kpi__delta--{{ metric.direction }}">
+        {% if metric.direction == "up" %}{% icon "arrow-up" %}
+        {% elif metric.direction == "down" %}{% icon "arrow-down" %}
+        {% else %}{% icon "minus" %}{% endif %}
+        {{ metric.change|floatformat:1 }}%
+      </span>
+      <span>{{ compare_label|default:_("vs previous period") }}</span>
+    {% elif hint %}
+      <span>{{ hint }}</span>
+    {% endif %}
+  </div>
+</div>

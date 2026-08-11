@@ -1,0 +1,88 @@
+{% extends "superadmin/_base.html" %}
+{% load i18n ui %}
+
+{% block title %}{{ message_obj.subject }}{% endblock %}
+{% block page_title %}{% trans "Messages" %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <nav class="row row--tight small muted mb-2">
+      <a class="link" href="{% url 'superadmin_messages' %}">{% trans "Messages" %}</a>
+      {% icon "chevron-right" %}
+      <span>{{ message_obj.subject|truncatechars:40 }}</span>
+    </nav>
+    <h1>{{ message_obj.subject }}</h1>
+    <p>
+      {% blocktrans with name=message_obj.full_name date=message_obj.created_at|date:"j M Y, H:i" %}From {{ name }} on {{ date }}{% endblocktrans %}
+    </p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 300px;gap:var(--space-6);align-items:start">
+  <div class="stack-lg">
+    <section class="card">
+      <div class="card__head"><p class="card__title">{% trans "Message" %}</p></div>
+      <div class="card__body">
+        <p style="white-space:pre-wrap">{{ message_obj.message }}</p>
+      </div>
+    </section>
+
+    <form method="post" class="card" data-loading-form>
+      {% csrf_token %}
+      <div class="card__head">
+        <div>
+          <p class="card__title">{% trans "Reply" %}</p>
+          <p class="card__subtitle">
+            {% trans "Saved as an internal record. Use the email link to send it." %}
+          </p>
+        </div>
+      </div>
+      <div class="card__body">
+        <div class="field">
+          <label class="field__label" for="reply">{% trans "Your reply" %}</label>
+          <textarea class="field__input" id="reply" name="reply" rows="6"
+                    placeholder="{% trans 'Type your response…' %}">{{ message_obj.reply }}</textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary">{% icon "check" %}{% trans "Save reply" %}</button>
+          <a class="btn" href="mailto:{{ message_obj.email }}?subject=Re: {{ message_obj.subject|urlencode }}">
+            {% icon "mail" %}{% trans "Open in email" %}
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <aside class="card">
+    <div class="card__head"><p class="card__title">{% trans "Sender" %}</p></div>
+    <div class="card__body stack-sm">
+      <div class="row">
+        <span class="avatar avatar--round">{{ message_obj.full_name|slice:":1"|upper }}</span>
+        <span><strong class="small">{{ message_obj.full_name }}</strong></span>
+      </div>
+      <div class="row row--tight small">
+        {% icon "mail" %}<a class="link" href="mailto:{{ message_obj.email }}">{{ message_obj.email }}</a>
+      </div>
+      <div class="row row--between mt-2">
+        <span class="small muted">{% trans "Received" %}</span>
+        <span class="small">{{ message_obj.created_at|date:"j M Y" }}</span>
+      </div>
+      <div class="row row--between">
+        <span class="small muted">{% trans "Status" %}</span>
+        {% if message_obj.is_replied %}
+          <span class="badge badge--success">{% trans "Replied" %}</span>
+        {% else %}
+          <span class="badge badge--warning">{% trans "Awaiting reply" %}</span>
+        {% endif %}
+      </div>
+      {% if message_obj.replied_at %}
+        <div class="row row--between">
+          <span class="small muted">{% trans "Replied" %}</span>
+          <span class="small">{{ message_obj.replied_at|date:"j M Y" }}</span>
+        </div>
+      {% endif %}
+    </div>
+  </aside>
+</div>
+{% endblock %}
